@@ -1,0 +1,251 @@
+.wishes-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: var(--spacing-sm);
+    background: var(--bg-card);
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-md);
+}
+
+.tab {
+    flex: 1;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab.active {
+    background: var(--primary);
+    color: white;
+}
+
+/* Category filter */
+.category-filter {
+    display: flex;
+    gap: var(--spacing-sm);
+    overflow-x: auto;
+    padding-bottom: var(--spacing-sm);
+}
+
+.filter-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.filter-btn.active {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+}
+
+/* Cards container */
+.cards-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-lg);
+    min-height: 400px;
+}
+
+.wish-card {
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 3/4;
+    background: var(--gradient-calm);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-lg);
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+}
+
+.wish-card.swipe-right {
+    border: 3px solid var(--tree-green);
+}
+
+.wish-card.swipe-left {
+    border: 3px solid var(--primary);
+}
+
+.card-emoji {
+    font-size: 64px;
+}
+
+.card-text {
+    font-size: var(--font-size-lg);
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.card-category {
+    font-size: var(--font-size-sm);
+    color: rgba(255, 255, 255, 0.7);
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-full);
+}
+
+.no-cards {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--text-secondary);
+}
+
+/* Swipe buttons */
+.swipe-buttons {
+    display: flex;
+    gap: var(--spacing-xl);
+}
+
+.swipe-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-full);
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.swipe-btn.dislike {
+    background: var(--bg-card);
+    color: var(--text-muted);
+}
+
+.swipe-btn.like {
+    background: var(--gradient-love);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+}
+
+.swipe-btn:active {
+    transform: scale(0.95);
+}
+
+.swipe-hint {
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+
+/* Matches list */
+.matches-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.match-card {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+}
+
+.match-card.completed {
+    opacity: 0.6;
+}
+
+.match-emoji {
+    font-size: 32px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.match-info {
+    flex: 1;
+}
+
+.match-text {
+    font-size: var(--font-size-sm);
+    margin-bottom: 4px;
+}
+
+.match-date {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+.completed-badge {
+    width: 24px;
+    height: 24px;
+    background: var(--tree-green);
+    color: white;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+/* Match popup */
+.match-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.match-popup {
+    text-align: center;
+    padding: var(--spacing-xl);
+}
+
+.match-hearts {
+    font-size: 80px;
+    display: block;
+    margin-bottom: var(--spacing-lg);
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.match-popup h2 {
+    font-size: var(--font-size-2xl);
+    background: var(--gradient-love);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: var(--spacing-sm);
+}
+
+.match-popup p {
+    color: var(--text-secondary);
+}

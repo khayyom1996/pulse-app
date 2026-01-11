@@ -1,0 +1,84 @@
+.love-button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-xl);
+    position: relative;
+}
+
+.love-button {
+    width: 200px;
+    height: 200px;
+    border-radius: var(--radius-full);
+    border: none;
+    background: var(--gradient-love);
+    box-shadow: var(--shadow-glow);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    transition: all 0.3s ease;
+    animation: glow 2s ease-in-out infinite;
+}
+
+.love-button:hover {
+    transform: scale(1.02);
+}
+
+.love-button.pressed {
+    transform: scale(0.95);
+    box-shadow: 0 0 60px rgba(255, 107, 107, 0.9);
+}
+
+.love-button.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    animation: none;
+}
+
+.love-button-icon {
+    font-size: 64px;
+    display: block;
+}
+
+.love-button-text {
+    color: white;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+.love-button-hint {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    text-align: center;
+}
+
+.floating-hearts {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 10;
+}
+
+.floating-heart {
+    position: absolute;
+    font-size: 32px;
+}
+
+@keyframes glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 30px rgba(255, 107, 107, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 50px rgba(255, 107, 107, 0.7);
+    }
+}

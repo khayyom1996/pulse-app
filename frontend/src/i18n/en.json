@@ -1,0 +1,73 @@
+{
+    "app": {
+        "title": "Pulse",
+        "loading": "Loading..."
+    },
+    "nav": {
+        "home": "Home",
+        "dates": "Dates",
+        "wishes": "Wishes",
+        "profile": "Profile"
+    },
+    "home": {
+        "welcome": "Hi, {{name}}!",
+        "partnered_with": "You & {{partner}}",
+        "not_paired": "Invite your partner",
+        "send_love": "Send love",
+        "love_sent": "💕 Love sent!",
+        "streak": "Days together",
+        "today_loves": "Today"
+    },
+    "love": {
+        "button_hint": "Tap to send love",
+        "cooldown": "Wait {{seconds}} sec"
+    },
+    "tree": {
+        "level_1": "Sprout",
+        "level_2": "Seedling",
+        "level_3": "Young tree",
+        "level_4": "Mature tree",
+        "level_5": "Blooming tree",
+        "days_to_next": "Next level in {{days}} days"
+    },
+    "dates": {
+        "title": "Important Dates",
+        "add": "Add date",
+        "empty": "No important dates yet",
+        "today": "Today!",
+        "days_left": "in {{days}} days",
+        "days_ago": "{{days}} days ago",
+        "categories": {
+            "anniversary": "Anniversary",
+            "birthday": "Birthday",
+            "first_date": "First date",
+            "custom": "Other"
+        }
+    },
+    "wishes": {
+        "title": "Secret Wishes",
+        "swipe_hint": "Swipe right if you like it",
+        "no_cards": "New cards coming soon!",
+        "match": "It's a match!",
+        "match_text": "You both want this!",
+        "matches_title": "Your matches",
+        "categories": {
+            "romance": "Romance",
+            "adventure": "Adventure",
+            "leisure": "Leisure"
+        }
+    },
+    "pair": {
+        "invite_title": "Invite partner",
+        "invite_code": "Invite code",
+        "copy_link": "Copy link",
+        "link_copied": "Link copied!",
+        "join_title": "Join",
+        "enter_code": "Enter partner's code",
+        "join": "Join"
+    },
+    "errors": {
+        "network": "Network error. Check your connection.",
+        "unknown": "Something went wrong"
+    }
+}

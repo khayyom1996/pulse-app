@@ -1,0 +1,176 @@
+.dates-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.add-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+}
+
+.dates-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.date-card {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    position: relative;
+}
+
+.date-card.today {
+    border: 2px solid var(--primary);
+    box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
+}
+
+.date-card.past {
+    opacity: 0.6;
+}
+
+.date-emoji {
+    font-size: 32px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.date-info {
+    flex: 1;
+}
+
+.date-title {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.date-date {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.date-countdown {
+    text-align: right;
+}
+
+.days {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.days.today {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.date-card:hover .delete-btn {
+    opacity: 1;
+}
+
+/* Empty state */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    text-align: center;
+}
+
+.empty-emoji {
+    font-size: 64px;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+    z-index: 200;
+}
+
+.date-form {
+    width: 100%;
+    max-width: 400px;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.date-form h2 {
+    text-align: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.date-form input,
+.date-form select {
+    padding: var(--spacing-md);
+    border: 2px solid var(--bg-card-hover);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: var(--font-size-md);
+}
+
+.date-form input:focus,
+.date-form select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-sm);
+}
+
+.form-actions .btn {
+    flex: 1;
+}

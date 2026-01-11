@@ -1,0 +1,127 @@
+.home-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: var(--spacing-lg);
+}
+
+.home-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xl);
+}
+
+.home-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 var(--spacing-md);
+}
+
+.home-header h1 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+.today-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+}
+
+.today-count {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.today-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+/* Loading state */
+.loading-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: var(--spacing-md);
+}
+
+.loader {
+    font-size: 64px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Welcome card for unpaired users */
+.welcome-card {
+    width: 100%;
+    text-align: center;
+    padding: var(--spacing-xl);
+}
+
+.welcome-card h1 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-xl);
+}
+
+.invite-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.invite-code {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    letter-spacing: 4px;
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    color: var(--primary);
+}
+
+.pair-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.join-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+}
+
+.join-section input {
+    padding: var(--spacing-md);
+    border: 2px solid var(--bg-card-hover);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: var(--font-size-lg);
+    text-align: center;
+    letter-spacing: 2px;
+    font-weight: 600;
+}
+
+.join-section input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
