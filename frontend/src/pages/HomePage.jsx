@@ -105,41 +105,49 @@ export default function HomePage() {
                 >
                     <h1>{t('home.welcome', { name: userData?.firstName || 'User' })}</h1>
 
-                    {pair && !pair.isComplete ? (
-                        // Has invite code, waiting for partner
+                    {/* Invite section - show code if you have one */}
+                    {pair && !pair.isComplete && (
                         <div className="invite-section">
-                            <p>{t('pair.invite_title')}</p>
+                            <p>{t('pair.your_code')}</p>
                             <div className="invite-code">{pair.inviteCode}</div>
                             <button className="btn btn-primary" onClick={copyInviteLink}>
                                 {t('pair.copy_link')}
                             </button>
                         </div>
-                    ) : (
-                        // No pair yet
+                    )}
+
+                    {/* Create pair button if no pair yet */}
+                    {!pair && (
                         <div className="pair-actions">
                             <button className="btn btn-primary" onClick={handleCreatePair}>
                                 {t('pair.invite_title')}
                             </button>
-                            <button className="btn btn-secondary" onClick={() => setShowJoin(true)}>
-                                {t('pair.join_title')}
-                            </button>
                         </div>
                     )}
 
-                    {showJoin && (
-                        <div className="join-section">
-                            <input
-                                type="text"
-                                placeholder={t('pair.enter_code')}
-                                value={inviteCode}
-                                onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                                maxLength={8}
-                            />
-                            <button className="btn btn-primary" onClick={handleJoinPair}>
-                                {t('pair.join')}
-                            </button>
-                        </div>
-                    )}
+                    {/* Divider */}
+                    <div className="or-divider">
+                        <span>{t('pair.or')}</span>
+                    </div>
+
+                    {/* Join section - always visible */}
+                    <div className="join-section">
+                        <p>{t('pair.join_title')}</p>
+                        <input
+                            type="text"
+                            placeholder={t('pair.enter_code')}
+                            value={inviteCode}
+                            onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                            maxLength={8}
+                        />
+                        <button
+                            className="btn btn-secondary"
+                            onClick={handleJoinPair}
+                            disabled={!inviteCode.trim()}
+                        >
+                            {t('pair.join')}
+                        </button>
+                    </div>
                 </motion.div>
             </div>
         );

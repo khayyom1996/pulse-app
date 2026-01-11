@@ -59,11 +59,13 @@
     },
     "pair": {
         "invite_title": "Invite partner",
+        "your_code": "Your invite code",
         "invite_code": "Invite code",
         "copy_link": "Copy link",
         "link_copied": "Link copied!",
-        "join_title": "Join",
-        "enter_code": "Enter partner's code",
+        "or": "or",
+        "join_title": "Have partner's code?",
+        "enter_code": "Enter code",
         "join": "Join"
     },
     "errors": {
