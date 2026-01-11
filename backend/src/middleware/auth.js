@@ -28,9 +28,13 @@ const authMiddleware = async (req, res, next) => {
             return res.status(401).json({ error: 'Invalid authentication' });
         }
 
+        // Create or update user in database
+        const user = await authService.getOrCreateUser(telegramUser);
+
         // Attach user ID to request
-        req.userId = telegramUser.id;
+        req.userId = user.id;
         req.telegramUser = telegramUser;
+        req.user = user;
 
         next();
     } catch (error) {

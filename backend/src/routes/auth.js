@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authService = require('../services/authService');
+const authMiddleware = require('../middleware/auth');
 
 /**
  * POST /api/auth/login
@@ -59,7 +60,7 @@ router.post('/login', async (req, res) => {
  * POST /api/auth/create-pair
  * Create new pair with invite code
  */
-router.post('/create-pair', async (req, res) => {
+router.post('/create-pair', authMiddleware, async (req, res) => {
     try {
         const userId = req.userId;
         const { pair, isNew } = await authService.createPair(userId);
@@ -82,7 +83,7 @@ router.post('/create-pair', async (req, res) => {
  * POST /api/auth/join-pair
  * Join existing pair with invite code
  */
-router.post('/join-pair', async (req, res) => {
+router.post('/join-pair', authMiddleware, async (req, res) => {
     try {
         const userId = req.userId;
         const { inviteCode } = req.body;
