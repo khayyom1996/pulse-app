@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const loveService = require('../services/loveService');
 const authService = require('../services/authService');
+const { sendLoveNotification } = require('../bot');
+const { User } = require('../models');
 
 /**
  * POST /api/love
@@ -31,6 +33,17 @@ router.post('/', async (req, res) => {
             return res.status(429).json({
                 error: result.error,
                 cooldownRemaining: result.cooldownRemaining,
+            });
+        }
+
+        // Send notification to partner
+        if (result.shouldNotify) {
+            const sender = await User.findByPk(userId);
+            const senderName = sender?.firstName || 'Ваш партнёр';
+
+            // Fire and forget - don't wait for notification
+            sendLoveNotification(receiverId, senderName, message).catch(err => {
+                console.error('Failed to send love notification:', err.message);
             });
         }
 
