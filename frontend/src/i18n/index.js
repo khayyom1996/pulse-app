@@ -2,14 +2,15 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import ru from './ru.json';
 import en from './en.json';
-import tg from './tg.json';
 
 // Get language from Telegram WebApp
 const getTelegramLanguage = () => {
     try {
         const webapp = window.Telegram?.WebApp;
         const user = webapp?.initDataUnsafe?.user;
-        return user?.language_code || 'ru';
+        const lang = user?.language_code || 'ru';
+        // Only support ru and en
+        return lang === 'en' ? 'en' : 'ru';
     } catch {
         return 'ru';
     }
@@ -21,7 +22,6 @@ i18n
         resources: {
             ru: { translation: ru },
             en: { translation: en },
-            tg: { translation: tg },
         },
         lng: getTelegramLanguage(),
         fallbackLng: 'ru',
@@ -31,3 +31,4 @@ i18n
     });
 
 export default i18n;
+
