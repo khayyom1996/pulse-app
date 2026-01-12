@@ -68,6 +68,19 @@
         "enter_code": "Enter code",
         "join": "Join"
     },
+    "onboarding": {
+        "skip": "Skip",
+        "next": "Next",
+        "start": "Get Started",
+        "slide1_title": "Send Love",
+        "slide1_desc": "Tap the heart and your partner instantly gets notified that you're thinking of them",
+        "slide2_title": "Remember What Matters",
+        "slide2_desc": "Add anniversaries, birthdays and important dates — we'll remind you on time",
+        "slide3_title": "Find Shared Dreams",
+        "slide3_desc": "Swipe wish cards — when you match, you'll discover what you both want",
+        "slide4_title": "Grow Together",
+        "slide4_desc": "Your love tree grows with every day you're active together in the app"
+    },
     "errors": {
         "network": "Network error. Check your connection.",
         "unknown": "Something went wrong"
