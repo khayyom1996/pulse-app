@@ -15,7 +15,7 @@ cd backend && npm install && cd ..
 cd frontend && npm install && cd ..
 
 # 3. Запустить с Docker Compose
-export TELEGRAM_BOT_TOKEN=8520819047:AAHNWdPh5NCDYbGow7EgddmP3bAzPNwoAhg
+export TELEGRAM_BOT_TOKEN=
 docker-compose up -d
 
 # 4. Заполнить базу данных

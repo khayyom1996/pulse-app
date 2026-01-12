@@ -47,6 +47,8 @@ class AuthService {
      * Get user's pair
      */
     async getUserPair(userId) {
+        // Find pair where user is either user1 or user2
+        // Prioritize completed pairs (with pairedAt) over incomplete ones
         const pair = await Pair.findOne({
             where: {
                 [require('sequelize').Op.or]: [
@@ -59,6 +61,11 @@ class AuthService {
                 { model: User, as: 'user1' },
                 { model: User, as: 'user2' },
                 { model: TreeStreak },
+            ],
+            order: [
+                // Completed pairs first (those with user2Id)
+                [require('sequelize').literal('CASE WHEN "user2_id" IS NOT NULL THEN 0 ELSE 1 END'), 'ASC'],
+                ['pairedAt', 'DESC NULLS LAST'],
             ],
         });
 
@@ -114,6 +121,18 @@ class AuthService {
         if (pair.user1Id === userId) {
             return { error: 'You cannot join your own pair' };
         }
+
+        // Deactivate any incomplete pairs where this user is user1
+        await Pair.update(
+            { isActive: false },
+            {
+                where: {
+                    user1Id: userId,
+                    user2Id: null,
+                    isActive: true,
+                },
+            }
+        );
 
         await pair.update({
             user2Id: userId,
