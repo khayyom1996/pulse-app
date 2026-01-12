@@ -11,6 +11,7 @@ const authRoutes = require('./routes/auth');
 const loveRoutes = require('./routes/love');
 const datesRoutes = require('./routes/dates');
 const wishesRoutes = require('./routes/wishes');
+const adminRoutes = require('./routes/admin');
 
 // Import middleware
 const authMiddleware = require('./middleware/auth');
@@ -76,6 +77,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/love', authMiddleware, loveRoutes);
 app.use('/api/dates', authMiddleware, datesRoutes);
 app.use('/api/wishes', authMiddleware, wishesRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Admin: Force seed wish cards
 app.post('/api/admin/seed-cards', async (req, res) => {

@@ -6,12 +6,19 @@ import Onboarding from './components/Onboarding';
 import HomePage from './pages/HomePage';
 import DatesPage from './pages/DatesPage';
 import WishesPage from './pages/WishesPage';
+import AdminPage from './pages/AdminPage';
 
 export default function App() {
     const { ready, expand } = useTelegram();
     const [showOnboarding, setShowOnboarding] = useState(false);
 
+    // Check if admin page
+    const isAdminPage = window.location.pathname === '/admin';
+
     useEffect(() => {
+        // Skip Telegram init for admin page
+        if (isAdminPage) return;
+
         // Initialize Telegram WebApp
         ready();
         expand();
@@ -21,9 +28,9 @@ export default function App() {
         if (!onboardingDone) {
             setShowOnboarding(true);
         }
-    }, [ready, expand]);
+    }, [ready, expand, isAdminPage]);
 
-    if (showOnboarding) {
+    if (showOnboarding && !isAdminPage) {
         return <Onboarding onComplete={() => setShowOnboarding(false)} />;
     }
 
@@ -34,9 +41,11 @@ export default function App() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/dates" element={<DatesPage />} />
                     <Route path="/wishes" element={<WishesPage />} />
+                    <Route path="/admin" element={<AdminPage />} />
                 </Routes>
-                <Navigation />
+                {!isAdminPage && <Navigation />}
             </div>
         </BrowserRouter>
     );
 }
+
