@@ -6,7 +6,14 @@ const User = sequelize.define('User', {
         type: DataTypes.BIGINT,
         primaryKey: true,
         allowNull: false,
-        comment: 'Telegram user ID',
+    },
+    telegramId: {
+        type: DataTypes.BIGINT,
+        allowNull: true,
+    },
+    chatId: {
+        type: DataTypes.BIGINT,
+        allowNull: true,
     },
     username: {
         type: DataTypes.STRING(100),
@@ -37,7 +44,10 @@ const User = sequelize.define('User', {
     tableName: 'users',
     indexes: [
         { fields: ['username'] },
+        { fields: ['telegram_id'] },
+        { fields: ['chat_id'] },
     ],
 });
 
 module.exports = User;
+

@@ -9,7 +9,8 @@ const bot = new Telegraf(config.telegramBotToken);
 bot.command('start', async (ctx) => {
     try {
         const telegramUser = ctx.from;
-        const user = await authService.getOrCreateUser(telegramUser);
+        const chatId = ctx.chat.id; // Get chat ID for messaging
+        const user = await authService.getOrCreateUser(telegramUser, chatId);
         const pair = await authService.getUserPair(user.id);
 
         // Check for deep link (invite code)

@@ -6,12 +6,15 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 export default function AdminPage() {
     const [adminKey, setAdminKey] = useState(localStorage.getItem('pulse_admin_key') || '');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [activeTab, setActiveTab] = useState('dashboard');
     const [stats, setStats] = useState(null);
     const [userChart, setUserChart] = useState([]);
     const [activityChart, setActivityChart] = useState([]);
     const [topUsers, setTopUsers] = useState([]);
+    const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [sidebarOpen, setSidebarOpen] = useState(true);
 
     // Broadcast state
     const [broadcastMessage, setBroadcastMessage] = useState('');
@@ -68,6 +71,20 @@ export default function AdminPage() {
         setLoading(false);
     };
 
+    const loadUsers = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/api/admin/users`, { headers });
+            if (res.ok) {
+                const data = await res.json();
+                setUsers(data.users || []);
+            }
+        } catch (e) {
+            console.error('Users load error:', e);
+        }
+        setLoading(false);
+    };
+
     const sendBroadcast = async () => {
         if (!broadcastMessage.trim()) return;
 
@@ -94,11 +111,39 @@ export default function AdminPage() {
         setSending(false);
     };
 
+    const clearAllData = async () => {
+        if (!window.confirm('⚠️ ВНИМАНИЕ! Вы уверены что хотите удалить ВСЕ данные?')) return;
+        if (!window.confirm('Это действие необратимо. Подтвердите ещё раз.')) return;
+
+        try {
+            const res = await fetch(`${API_URL}/api/admin/clear-data`, {
+                method: 'DELETE',
+                headers: { ...headers, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ confirm: 'DELETE_ALL_DATA' }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert('✅ Все данные удалены');
+                loadDashboard();
+            } else {
+                alert('❌ Ошибка: ' + data.error);
+            }
+        } catch (e) {
+            alert('❌ Ошибка удаления');
+        }
+    };
+
     useEffect(() => {
         if (adminKey && localStorage.getItem('pulse_admin_key') === adminKey) {
             authenticate();
         }
     }, []);
+
+    useEffect(() => {
+        if (isAuthenticated && activeTab === 'users') {
+            loadUsers();
+        }
+    }, [activeTab, isAuthenticated]);
 
     if (!isAuthenticated) {
         return (
@@ -124,149 +169,216 @@ export default function AdminPage() {
     const maxUserCount = Math.max(...userChart.map(d => d.count), 1);
     const maxActivityCount = Math.max(...activityChart.map(d => d.loveClicks + d.swipes), 1);
 
+    const menuItems = [
+        { id: 'dashboard', icon: '📊', label: 'Dashboard' },
+        { id: 'users', icon: '👥', label: 'Пользователи' },
+        { id: 'broadcast', icon: '📢', label: 'Рассылка' },
+        { id: 'settings', icon: '⚙️', label: 'Настройки' },
+    ];
+
     return (
-        <div className="admin-page">
-            <header className="admin-header">
-                <h1>📊 Pulse Dashboard</h1>
-                <button className="refresh-btn" onClick={loadDashboard} disabled={loading}>
-                    🔄 {loading ? 'Загрузка...' : 'Обновить'}
-                </button>
-            </header>
+        <div className={`admin-layout ${sidebarOpen ? 'sidebar-open' : ''}`}>
+            {/* Sidebar */}
+            <aside className="admin-sidebar">
+                <div className="sidebar-header">
+                    <span className="logo">💕</span>
+                    <span className="logo-text">Pulse Admin</span>
+                </div>
+                <nav className="sidebar-nav">
+                    {menuItems.map(item => (
+                        <button
+                            key={item.id}
+                            className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
+                            onClick={() => setActiveTab(item.id)}
+                        >
+                            <span className="nav-icon">{item.icon}</span>
+                            <span className="nav-label">{item.label}</span>
+                        </button>
+                    ))}
+                </nav>
+                <div className="sidebar-footer">
+                    <button className="logout-btn" onClick={() => {
+                        localStorage.removeItem('pulse_admin_key');
+                        setIsAuthenticated(false);
+                    }}>
+                        🚪 Выход
+                    </button>
+                </div>
+            </aside>
 
-            {stats && (
-                <>
-                    {/* Stats Cards */}
-                    <div className="stats-grid">
-                        <div className="stat-card users">
-                            <div className="stat-icon">👥</div>
-                            <div className="stat-info">
-                                <span className="stat-value">{stats.users.total}</span>
-                                <span className="stat-label">Пользователей</span>
-                                <span className="stat-sub">+{stats.users.today} сегодня</span>
-                            </div>
-                        </div>
-                        <div className="stat-card pairs">
-                            <div className="stat-icon">💕</div>
-                            <div className="stat-info">
-                                <span className="stat-value">{stats.pairs.total}</span>
-                                <span className="stat-label">Пар</span>
-                                <span className="stat-sub">{stats.pairs.pending} ожидают</span>
-                            </div>
-                        </div>
-                        <div className="stat-card activity">
-                            <div className="stat-icon">❤️</div>
-                            <div className="stat-info">
-                                <span className="stat-value">{stats.activity.totalLoveClicks}</span>
-                                <span className="stat-label">Кликов любви</span>
-                                <span className="stat-sub">~{stats.activity.avgPerDay}/день</span>
-                            </div>
-                        </div>
-                        <div className="stat-card engagement">
-                            <div className="stat-icon">🌳</div>
-                            <div className="stat-info">
-                                <span className="stat-value">{stats.engagement.avgStreak}</span>
-                                <span className="stat-label">Средний streak</span>
-                                <span className="stat-sub">{stats.engagement.totalMatches} совпадений</span>
-                            </div>
-                        </div>
-                    </div>
+            {/* Main Content */}
+            <main className="admin-main">
+                <header className="admin-topbar">
+                    <button className="menu-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+                        ☰
+                    </button>
+                    <h1>{menuItems.find(m => m.id === activeTab)?.label}</h1>
+                    <button className="refresh-btn" onClick={loadDashboard} disabled={loading}>
+                        🔄 {loading ? '...' : ''}
+                    </button>
+                </header>
 
-                    {/* Charts Row */}
-                    <div className="charts-row">
-                        {/* User Registration Chart */}
-                        <div className="chart-card">
-                            <h3>📈 Регистрации (30 дней)</h3>
-                            <div className="chart-container">
-                                <div className="bar-chart">
-                                    {userChart.map((d, i) => (
-                                        <div key={i} className="bar-wrapper">
-                                            <div
-                                                className="bar"
-                                                style={{ height: `${(d.count / maxUserCount) * 100}%` }}
-                                                title={`${d.date}: ${d.count}`}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="chart-legend">
-                                    <span>{userChart[0]?.date}</span>
-                                    <span>{userChart[userChart.length - 1]?.date}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Activity Chart */}
-                        <div className="chart-card">
-                            <h3>💓 Активность (14 дней)</h3>
-                            <div className="chart-container">
-                                <div className="bar-chart stacked">
-                                    {activityChart.map((d, i) => (
-                                        <div key={i} className="bar-wrapper">
-                                            <div
-                                                className="bar love"
-                                                style={{ height: `${(d.loveClicks / maxActivityCount) * 100}%` }}
-                                                title={`Любовь: ${d.loveClicks}`}
-                                            />
-                                            <div
-                                                className="bar swipe"
-                                                style={{ height: `${(d.swipes / maxActivityCount) * 50}%` }}
-                                                title={`Свайпы: ${d.swipes}`}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="chart-labels">
-                                    <span className="label-love">❤️ Любовь</span>
-                                    <span className="label-swipe">💜 Свайпы</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Top Users and Broadcast */}
-                    <div className="bottom-row">
-                        {/* Top Users */}
-                        <div className="panel top-users">
-                            <h3>🏆 Топ активных</h3>
-                            <div className="top-list">
-                                {topUsers.map((u, i) => (
-                                    <div key={i} className="top-item">
-                                        <span className="rank">{i + 1}</span>
-                                        <span className="name">{u.user}</span>
-                                        <span className="count">{u.count} ❤️</span>
+                <div className="admin-content">
+                    {/* Dashboard Tab */}
+                    {activeTab === 'dashboard' && stats && (
+                        <>
+                            {/* Stats Cards */}
+                            <div className="stats-grid">
+                                <div className="stat-card users">
+                                    <div className="stat-icon">👥</div>
+                                    <div className="stat-info">
+                                        <span className="stat-value">{stats.users.total}</span>
+                                        <span className="stat-label">Пользователей</span>
+                                        <span className="stat-sub">+{stats.users.today} сегодня</span>
                                     </div>
-                                ))}
-                                {topUsers.length === 0 && (
-                                    <p className="empty">Нет данных</p>
-                                )}
+                                </div>
+                                <div className="stat-card pairs">
+                                    <div className="stat-icon">💕</div>
+                                    <div className="stat-info">
+                                        <span className="stat-value">{stats.pairs.total}</span>
+                                        <span className="stat-label">Пар</span>
+                                        <span className="stat-sub">{stats.pairs.pending} ожидают</span>
+                                    </div>
+                                </div>
+                                <div className="stat-card activity">
+                                    <div className="stat-icon">❤️</div>
+                                    <div className="stat-info">
+                                        <span className="stat-value">{stats.activity.totalLoveClicks}</span>
+                                        <span className="stat-label">Кликов любви</span>
+                                        <span className="stat-sub">~{stats.activity.avgPerDay}/день</span>
+                                    </div>
+                                </div>
+                                <div className="stat-card engagement">
+                                    <div className="stat-icon">🌳</div>
+                                    <div className="stat-info">
+                                        <span className="stat-value">{stats.engagement.avgStreak}</span>
+                                        <span className="stat-label">Средний streak</span>
+                                        <span className="stat-sub">{stats.engagement.totalMatches} совпадений</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Charts Row */}
+                            <div className="charts-row">
+                                <div className="chart-card">
+                                    <h3>📈 Регистрации (30 дней)</h3>
+                                    <div className="chart-container">
+                                        <div className="bar-chart">
+                                            {userChart.map((d, i) => (
+                                                <div key={i} className="bar-wrapper">
+                                                    <div
+                                                        className="bar"
+                                                        style={{ height: `${(d.count / maxUserCount) * 100}%` }}
+                                                        title={`${d.date}: ${d.count}`}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="chart-card">
+                                    <h3>💓 Активность (14 дней)</h3>
+                                    <div className="chart-container">
+                                        <div className="bar-chart stacked">
+                                            {activityChart.map((d, i) => (
+                                                <div key={i} className="bar-wrapper">
+                                                    <div
+                                                        className="bar love"
+                                                        style={{ height: `${(d.loveClicks / maxActivityCount) * 100}%` }}
+                                                        title={`Любовь: ${d.loveClicks}`}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Top Users */}
+                            <div className="panel">
+                                <h3>🏆 Топ активных пользователей</h3>
+                                <div className="top-list">
+                                    {topUsers.map((u, i) => (
+                                        <div key={i} className="top-item">
+                                            <span className="rank">{i + 1}</span>
+                                            <span className="name">{u.user}</span>
+                                            <span className="count">{u.count} ❤️</span>
+                                        </div>
+                                    ))}
+                                    {topUsers.length === 0 && <p className="empty">Нет данных</p>}
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {/* Users Tab */}
+                    {activeTab === 'users' && (
+                        <div className="panel users-panel">
+                            <h3>👥 Все пользователи ({users.length})</h3>
+                            <div className="users-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Telegram ID</th>
+                                            <th>Chat ID</th>
+                                            <th>Имя</th>
+                                            <th>Username</th>
+                                            <th>Язык</th>
+                                            <th>Дата</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {users.map(user => (
+                                            <tr key={user.id}>
+                                                <td>{user.id}</td>
+                                                <td>{user.telegramId || user.id}</td>
+                                                <td>{user.chatId || '-'}</td>
+                                                <td>{user.firstName} {user.lastName}</td>
+                                                <td>@{user.username || '-'}</td>
+                                                <td>{user.languageCode}</td>
+                                                <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
+                    )}
 
-                        {/* Broadcast */}
-                        <div className="panel broadcast">
-                            <h3>📢 Рассылка</h3>
+                    {/* Broadcast Tab */}
+                    {activeTab === 'broadcast' && (
+                        <div className="panel broadcast-panel">
+                            <h3>📢 Рассылка сообщений</h3>
                             <div className="broadcast-form">
-                                <select
-                                    value={targetGroup}
-                                    onChange={(e) => setTargetGroup(e.target.value)}
-                                >
-                                    <option value="all">Все пользователи</option>
-                                    <option value="paired">Только в паре</option>
-                                    <option value="unpaired">Без пары</option>
-                                    <option value="active">Активные (7 дней)</option>
-                                </select>
-                                <textarea
-                                    placeholder="Текст сообщения (поддерживает Markdown)"
-                                    value={broadcastMessage}
-                                    onChange={(e) => setBroadcastMessage(e.target.value)}
-                                    rows={4}
-                                />
+                                <div className="form-group">
+                                    <label>Целевая аудитория</label>
+                                    <select
+                                        value={targetGroup}
+                                        onChange={(e) => setTargetGroup(e.target.value)}
+                                    >
+                                        <option value="all">Все пользователи</option>
+                                        <option value="paired">Только в паре</option>
+                                        <option value="unpaired">Без пары</option>
+                                        <option value="active">Активные (7 дней)</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Текст сообщения (Markdown)</label>
+                                    <textarea
+                                        placeholder="*Жирный*, _курсив_, [ссылка](url)"
+                                        value={broadcastMessage}
+                                        onChange={(e) => setBroadcastMessage(e.target.value)}
+                                        rows={6}
+                                    />
+                                </div>
                                 <button
                                     onClick={sendBroadcast}
                                     disabled={sending || !broadcastMessage.trim()}
                                     className="send-btn"
                                 >
-                                    {sending ? '📤 Отправка...' : '📤 Отправить'}
+                                    {sending ? '📤 Отправка...' : '📤 Отправить рассылку'}
                                 </button>
                                 {broadcastResult && (
                                     <div className={`broadcast-result ${broadcastResult.error ? 'error' : 'success'}`}>
@@ -278,29 +390,23 @@ export default function AdminPage() {
                                 )}
                             </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* Quick Stats */}
-                    <div className="quick-stats">
-                        <div className="quick-stat">
-                            <span className="qs-value">{stats.users.week}</span>
-                            <span className="qs-label">За неделю</span>
+                    {/* Settings Tab */}
+                    {activeTab === 'settings' && (
+                        <div className="panel settings-panel">
+                            <h3>⚙️ Настройки</h3>
+                            <div className="settings-section">
+                                <h4>🗑️ Опасная зона</h4>
+                                <p>Удаление всех данных из базы. Это действие необратимо!</p>
+                                <button className="danger-btn" onClick={clearAllData}>
+                                    🗑️ Удалить все данные
+                                </button>
+                            </div>
                         </div>
-                        <div className="quick-stat">
-                            <span className="qs-value">{stats.users.month}</span>
-                            <span className="qs-label">За месяц</span>
-                        </div>
-                        <div className="quick-stat">
-                            <span className="qs-value">{stats.engagement.totalDates}</span>
-                            <span className="qs-label">Важных дат</span>
-                        </div>
-                        <div className="quick-stat">
-                            <span className="qs-value">{stats.engagement.totalSwipes}</span>
-                            <span className="qs-label">Всего свайпов</span>
-                        </div>
-                    </div>
-                </>
-            )}
+                    )}
+                </div>
+            </main>
         </div>
     );
 }

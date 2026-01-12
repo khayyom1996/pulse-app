@@ -256,13 +256,20 @@ router.post('/broadcast', adminAuth, async (req, res) => {
 
         for (const user of users) {
             try {
+                // Use chatId if available, fallback to user.id
+                const targetChatId = user.chatId || user.id;
+                if (!targetChatId) {
+                    failed++;
+                    continue;
+                }
+
                 if (imageUrl) {
-                    await bot.telegram.sendPhoto(user.telegramId, imageUrl, {
+                    await bot.telegram.sendPhoto(targetChatId, imageUrl, {
                         caption: message,
                         parse_mode: 'Markdown',
                     });
                 } else {
-                    await bot.telegram.sendMessage(user.telegramId, message, {
+                    await bot.telegram.sendMessage(targetChatId, message, {
                         parse_mode: 'Markdown',
                     });
                 }
@@ -271,7 +278,7 @@ router.post('/broadcast', adminAuth, async (req, res) => {
                 await new Promise(r => setTimeout(r, 50));
             } catch (err) {
                 failed++;
-                console.error(`Failed to send to ${user.telegramId}:`, err.message);
+                console.error(`Failed to send to ${user.chatId || user.id}:`, err.message);
             }
         }
 
@@ -323,4 +330,35 @@ router.get('/top-users', adminAuth, async (req, res) => {
     }
 });
 
+/**
+ * DELETE /api/admin/clear-data
+ * Clear all data from database (DANGEROUS!)
+ */
+router.delete('/clear-data', adminAuth, async (req, res) => {
+    try {
+        const { confirm } = req.body;
+
+        if (confirm !== 'DELETE_ALL_DATA') {
+            return res.status(400).json({ error: 'Confirm with DELETE_ALL_DATA' });
+        }
+
+        // Delete in correct order (foreign key constraints)
+        await LoveClick.destroy({ where: {}, truncate: true, cascade: true });
+        await WishSwipe.destroy({ where: {}, truncate: true, cascade: true });
+        await WishMatch.destroy({ where: {}, truncate: true, cascade: true });
+        await ImportantDate.destroy({ where: {}, truncate: true, cascade: true });
+        await TreeStreak.destroy({ where: {}, truncate: true, cascade: true });
+        await Pair.destroy({ where: {}, truncate: true, cascade: true });
+        await User.destroy({ where: {}, truncate: true, cascade: true });
+
+        console.log('⚠️ All data cleared by admin');
+
+        res.json({ success: true, message: 'All data cleared' });
+    } catch (error) {
+        console.error('Clear data error:', error);
+        res.status(500).json({ error: 'Failed to clear data: ' + error.message });
+    }
+});
+
 module.exports = router;
+
