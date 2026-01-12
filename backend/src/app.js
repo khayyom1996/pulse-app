@@ -78,7 +78,7 @@ app.use('/api/dates', authMiddleware, datesRoutes);
 app.use('/api/wishes', authMiddleware, wishesRoutes);
 
 // Telegram webhook
-app.use('/webhook', bot.webhookCallback('/webhook'));
+app.use('/webhook', bot.webhookCallback('/'));
 
 // 404 handler
 app.use((req, res) => {
