@@ -5,13 +5,15 @@ class DateService {
     /**
      * Create new important date
      */
-    async createDate(pairId, data) {
+    async createDate(pairId, createdBy, data) {
         const date = await ImportantDate.create({
             pairId,
+            createdBy,
             title: data.title,
             description: data.description,
             eventDate: data.eventDate,
             category: data.category || 'custom',
+            visibility: data.visibility || 'both',
             reminderDays: data.reminderDays || 1,
             isRecurring: data.isRecurring !== false,
         });
@@ -20,11 +22,18 @@ class DateService {
     }
 
     /**
-     * Get all dates for pair
+     * Get all dates for pair (filtered by visibility)
      */
-    async getDates(pairId) {
+    async getDates(pairId, userId) {
         const dates = await ImportantDate.findAll({
-            where: { pairId },
+            where: {
+                pairId,
+                // Show: 1) public dates 2) private dates created by this user
+                [Op.or]: [
+                    { visibility: 'both' },
+                    { visibility: 'private', createdBy: userId },
+                ],
+            },
             order: [['eventDate', 'ASC']],
         });
 
@@ -35,7 +44,7 @@ class DateService {
     /**
      * Get upcoming dates (next 30 days)
      */
-    async getUpcomingDates(pairId) {
+    async getUpcomingDates(pairId, userId) {
         const today = new Date();
         const thirtyDaysLater = new Date();
         thirtyDaysLater.setDate(today.getDate() + 30);
@@ -46,6 +55,11 @@ class DateService {
                 eventDate: {
                     [Op.between]: [today.toISOString().split('T')[0], thirtyDaysLater.toISOString().split('T')[0]],
                 },
+                // Show: 1) public dates 2) private dates created by this user
+                [Op.or]: [
+                    { visibility: 'both' },
+                    { visibility: 'private', createdBy: userId },
+                ],
             },
             order: [['eventDate', 'ASC']],
         });

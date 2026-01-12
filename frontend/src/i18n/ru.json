@@ -42,6 +42,14 @@
             "birthday": "День рождения",
             "first_date": "Первое свидание",
             "custom": "Другое"
+        },
+        "form": {
+            "title_placeholder": "Название",
+            "visibility": "Кто видит",
+            "visibility_both": "Оба",
+            "visibility_private": "Только я",
+            "cancel": "Отмена",
+            "save": "Сохранить"
         }
     },
     "wishes": {

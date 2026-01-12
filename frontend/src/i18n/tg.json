@@ -42,6 +42,14 @@
             "birthday": "Рӯзи таваллуд",
             "first_date": "Вохӯрии аввал",
             "custom": "Дигар"
+        },
+        "form": {
+            "title_placeholder": "Сарлавҳа",
+            "visibility": "Кӣ мебинад",
+            "visibility_both": "Ҳарду",
+            "visibility_private": "Танҳо ман",
+            "cancel": "Бекор",
+            "save": "Сабт"
         }
     },
     "wishes": {

@@ -77,6 +77,23 @@ app.use('/api/love', authMiddleware, loveRoutes);
 app.use('/api/dates', authMiddleware, datesRoutes);
 app.use('/api/wishes', authMiddleware, wishesRoutes);
 
+// Admin: Force seed wish cards
+app.post('/api/admin/seed-cards', async (req, res) => {
+    try {
+        const { WishCard } = require('./models');
+        const count = await WishCard.count();
+        if (count > 0) {
+            return res.json({ message: `Already have ${count} cards`, seeded: false });
+        }
+        await seedWishCards();
+        const newCount = await WishCard.count();
+        res.json({ message: `Seeded ${newCount} cards`, seeded: true });
+    } catch (error) {
+        console.error('Seed error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Telegram webhook
 app.use('/webhook', bot.webhookCallback('/'));
 

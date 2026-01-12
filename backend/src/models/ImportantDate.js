@@ -12,6 +12,11 @@ const ImportantDate = sequelize.define('ImportantDate', {
         allowNull: false,
         references: { model: 'pairs', key: 'id' },
     },
+    createdBy: {
+        type: DataTypes.BIGINT,
+        allowNull: false,
+        comment: 'User ID who created this date',
+    },
     title: {
         type: DataTypes.STRING(200),
         allowNull: false,
@@ -27,6 +32,11 @@ const ImportantDate = sequelize.define('ImportantDate', {
     category: {
         type: DataTypes.ENUM('anniversary', 'birthday', 'first_date', 'custom'),
         defaultValue: 'custom',
+    },
+    visibility: {
+        type: DataTypes.ENUM('both', 'private'),
+        defaultValue: 'both',
+        comment: 'both = visible to partner, private = only creator',
     },
     reminderDays: {
         type: DataTypes.INTEGER,
@@ -46,7 +56,9 @@ const ImportantDate = sequelize.define('ImportantDate', {
     indexes: [
         { fields: ['pair_id'] },
         { fields: ['event_date'] },
+        { fields: ['created_by'] },
     ],
 });
 
 module.exports = ImportantDate;
+

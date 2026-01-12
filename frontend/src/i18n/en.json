@@ -42,6 +42,14 @@
             "birthday": "Birthday",
             "first_date": "First date",
             "custom": "Other"
+        },
+        "form": {
+            "title_placeholder": "Title",
+            "visibility": "Who can see",
+            "visibility_both": "Both",
+            "visibility_private": "Only me",
+            "cancel": "Cancel",
+            "save": "Save"
         }
     },
     "wishes": {

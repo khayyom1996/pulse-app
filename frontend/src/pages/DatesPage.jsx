@@ -14,6 +14,7 @@ export default function DatesPage() {
         eventDate: '',
         category: 'custom',
         reminderDays: 1,
+        visibility: 'both',
     });
 
     useEffect(() => {
@@ -36,7 +37,7 @@ export default function DatesPage() {
         try {
             await api.createDate(formData);
             setShowForm(false);
-            setFormData({ title: '', eventDate: '', category: 'custom', reminderDays: 1 });
+            setFormData({ title: '', eventDate: '', category: 'custom', reminderDays: 1, visibility: 'both' });
             loadDates();
         } catch (error) {
             console.error('Failed to create date:', error);
@@ -113,7 +114,10 @@ export default function DatesPage() {
                             >
                                 <div className="date-emoji">{getCategoryEmoji(date.category)}</div>
                                 <div className="date-info">
-                                    <h3 className="date-title">{date.title}</h3>
+                                    <h3 className="date-title">
+                                        {date.title}
+                                        {date.visibility === 'private' && <span className="private-badge">🔒</span>}
+                                    </h3>
                                     <p className="date-date">
                                         {new Date(date.eventDate).toLocaleDateString()}
                                     </p>
@@ -157,7 +161,7 @@ export default function DatesPage() {
 
                             <input
                                 type="text"
-                                placeholder="Название"
+                                placeholder={t('dates.form.title_placeholder')}
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                 required
@@ -180,12 +184,33 @@ export default function DatesPage() {
                                 <option value="custom">{t('dates.categories.custom')}</option>
                             </select>
 
+                            {/* Visibility toggle */}
+                            <div className="visibility-toggle">
+                                <label className="toggle-label">{t('dates.form.visibility')}</label>
+                                <div className="toggle-options">
+                                    <button
+                                        type="button"
+                                        className={`toggle-btn ${formData.visibility === 'both' ? 'active' : ''}`}
+                                        onClick={() => setFormData({ ...formData, visibility: 'both' })}
+                                    >
+                                        👥 {t('dates.form.visibility_both')}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`toggle-btn ${formData.visibility === 'private' ? 'active' : ''}`}
+                                        onClick={() => setFormData({ ...formData, visibility: 'private' })}
+                                    >
+                                        🔒 {t('dates.form.visibility_private')}
+                                    </button>
+                                </div>
+                            </div>
+
                             <div className="form-actions">
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>
-                                    Отмена
+                                    {t('dates.form.cancel')}
                                 </button>
                                 <button type="submit" className="btn btn-primary">
-                                    Сохранить
+                                    {t('dates.form.save')}
                                 </button>
                             </div>
                         </motion.form>

@@ -2,10 +2,13 @@ const express = require('express');
 const router = express.Router();
 const dateService = require('../services/dateService');
 const authService = require('../services/authService');
+const { sendDateNotification } = require('../bot');
+const { User } = require('../models');
+const { Op } = require('sequelize');
 
 /**
  * GET /api/dates
- * Get all important dates
+ * Get all important dates (filtered by visibility)
  */
 router.get('/', async (req, res) => {
     try {
@@ -16,7 +19,7 @@ router.get('/', async (req, res) => {
             return res.status(400).json({ error: 'Not paired' });
         }
 
-        const dates = await dateService.getDates(pair.id);
+        const dates = await dateService.getDates(pair.id, userId);
         res.json({ dates });
     } catch (error) {
         console.error('Get dates error:', error);
@@ -37,7 +40,7 @@ router.get('/upcoming', async (req, res) => {
             return res.status(400).json({ error: 'Not paired' });
         }
 
-        const dates = await dateService.getUpcomingDates(pair.id);
+        const dates = await dateService.getUpcomingDates(pair.id, userId);
         res.json({ dates });
     } catch (error) {
         console.error('Get upcoming dates error:', error);
@@ -52,7 +55,7 @@ router.get('/upcoming', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const userId = req.userId;
-        const { title, description, eventDate, category, reminderDays, isRecurring } = req.body;
+        const { title, description, eventDate, category, reminderDays, isRecurring, visibility } = req.body;
 
         if (!title || !eventDate) {
             return res.status(400).json({ error: 'Title and eventDate are required' });
@@ -63,14 +66,28 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Not paired' });
         }
 
-        const date = await dateService.createDate(pair.id, {
+        const date = await dateService.createDate(pair.id, userId, {
             title,
             description,
             eventDate,
             category,
             reminderDays,
             isRecurring,
+            visibility: visibility || 'both',
         });
+
+        // Send notification to partner (if visibility is 'both')
+        const isPublic = visibility !== 'private';
+        if (isPublic && pair.user2Id) {
+            const partnerId = pair.user1Id === userId ? pair.user2Id : pair.user1Id;
+            const creator = await User.findByPk(userId);
+            const creatorName = creator?.firstName || 'Ваш партнёр';
+
+            // Send notification asynchronously
+            sendDateNotification(partnerId, creatorName, title, eventDate, category).catch(err => {
+                console.error('Failed to send date notification:', err.message);
+            });
+        }
 
         res.status(201).json({ date });
     } catch (error) {

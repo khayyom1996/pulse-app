@@ -353,6 +353,39 @@ async function sendLoveNotification(receiverId, senderName, message = null) {
     }
 }
 
+// Send notification about new date
+async function sendDateNotification(receiverId, creatorName, title, eventDate, category = 'custom') {
+    try {
+        const categoryEmojis = {
+            anniversary: '💍',
+            birthday: '🎂',
+            first_date: '💕',
+            custom: '📅',
+        };
+        const emoji = categoryEmojis[category] || '📅';
+        const formattedDate = new Date(eventDate).toLocaleDateString('ru-RU', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+        });
+
+        const text = `${emoji} ${creatorName} добавил(а) важную дату:\n\n*${title}*\n📅 ${formattedDate}`;
+
+        await bot.telegram.sendMessage(receiverId, text, {
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: [[
+                    { text: '📅 Открыть даты', web_app: { url: `${config.webappUrl}/dates` } },
+                ]],
+            },
+        });
+        return true;
+    } catch (error) {
+        console.error('Send date notification error:', error.message);
+        return false;
+    }
+}
+
 // Main keyboard helper
 function getMainKeyboard(isPaired = false) {
     return Markup.keyboard([
@@ -361,4 +394,5 @@ function getMainKeyboard(isPaired = false) {
     ]).resize();
 }
 
-module.exports = { bot, sendLoveNotification };
+module.exports = { bot, sendLoveNotification, sendDateNotification };
+
