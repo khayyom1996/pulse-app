@@ -125,8 +125,8 @@ async function start() {
         });
 
         // Set webhook in production
-        if (config.nodeEnv === 'production' && config.webappUrl) {
-            const webhookUrl = `${config.webappUrl.replace(/\/$/, '')}/webhook`;
+        if (config.nodeEnv === 'production' && config.apiUrl) {
+            const webhookUrl = `${config.apiUrl.replace(/\/$/, '')}/webhook`;
             await bot.telegram.setWebhook(webhookUrl);
             console.log(`✅ Telegram webhook set: ${webhookUrl}`);
         } else {

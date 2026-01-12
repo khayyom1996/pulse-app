@@ -14,6 +14,8 @@ module.exports = {
     // Telegram
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN,
     webappUrl: process.env.WEBAPP_URL,
+    apiUrl: process.env.API_URL || process.env.RAILWAY_PUBLIC_DOMAIN,
+    botUsername: process.env.BOT_USERNAME || 'pulse_love_bot',
 
     // Security
     jwtSecret: process.env.JWT_SECRET || 'default-secret',
