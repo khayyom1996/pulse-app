@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import apiClient from '../api/client';
 import './AiChatPage.css';
 
+import ReactMarkdown from 'react-markdown';
+
 const AiChatPage = () => {
     const { t } = useTranslation();
     const [messages, setMessages] = useState([]);
@@ -81,7 +83,13 @@ const AiChatPage = () => {
                 {messages.map((msg, idx) => (
                     <div key={idx} className={`message-wrapper ${msg.role}`}>
                         <div className="message-bubble">
-                            {msg.message}
+                            {msg.role === 'model' ? (
+                                <ReactMarkdown className="markdown-content">
+                                    {msg.message}
+                                </ReactMarkdown>
+                            ) : (
+                                msg.message
+                            )}
                             <span className="message-time">
                                 {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                             </span>
