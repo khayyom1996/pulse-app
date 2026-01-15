@@ -326,6 +326,7 @@ export default function AdminPage() {
                                             <th>Имя</th>
                                             <th>Username</th>
                                             <th>Язык</th>
+                                            <th>Страна</th>
                                             <th>Дата</th>
                                         </tr>
                                     </thead>
@@ -338,6 +339,7 @@ export default function AdminPage() {
                                                 <td>{user.firstName} {user.lastName}</td>
                                                 <td>@{user.username || '-'}</td>
                                                 <td>{user.languageCode}</td>
+                                                <td>{user.country || '-'}</td>
                                                 <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                                             </tr>
                                         ))}

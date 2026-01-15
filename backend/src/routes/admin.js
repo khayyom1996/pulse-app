@@ -96,7 +96,7 @@ router.get('/users', adminAuth, async (req, res) => {
             order: [['createdAt', 'DESC']],
             limit,
             offset,
-            attributes: ['id', 'telegramId', 'username', 'firstName', 'lastName', 'languageCode', 'createdAt'],
+            attributes: ['id', 'telegramId', 'username', 'firstName', 'lastName', 'languageCode', 'country', 'createdAt'],
         });
 
         res.json({
