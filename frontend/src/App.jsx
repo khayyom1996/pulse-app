@@ -6,6 +6,7 @@ import Onboarding from './components/Onboarding';
 import HomePage from './pages/HomePage';
 import DatesPage from './pages/DatesPage';
 import WishesPage from './pages/WishesPage';
+import AiChatPage from './pages/AiChatPage';
 import AdminPage from './pages/AdminPage';
 
 export default function App() {
@@ -41,6 +42,7 @@ export default function App() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/dates" element={<DatesPage />} />
                     <Route path="/wishes" element={<WishesPage />} />
+                    <Route path="/ai" element={<AiChatPage />} />
                     <Route path="/admin" element={<AdminPage />} />
                 </Routes>
                 {!isAdminPage && <Navigation />}

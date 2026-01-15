@@ -6,12 +6,14 @@ const WishCard = require('./WishCard');
 const WishSwipe = require('./WishSwipe');
 const WishMatch = require('./WishMatch');
 const TreeStreak = require('./TreeStreak');
+const AiChat = require('./AiChat');
 
 // User associations
 User.hasOne(Pair, { as: 'pairAsUser1', foreignKey: 'user1Id' });
 User.hasOne(Pair, { as: 'pairAsUser2', foreignKey: 'user2Id' });
 User.hasMany(LoveClick, { as: 'sentLoves', foreignKey: 'senderId' });
 User.hasMany(WishSwipe, { foreignKey: 'userId' });
+User.hasMany(AiChat, { foreignKey: 'userId' });
 
 // Pair associations
 Pair.belongsTo(User, { as: 'user1', foreignKey: 'user1Id' });
@@ -21,6 +23,7 @@ Pair.hasMany(ImportantDate, { foreignKey: 'pairId' });
 Pair.hasMany(WishSwipe, { foreignKey: 'pairId' });
 Pair.hasMany(WishMatch, { foreignKey: 'pairId' });
 Pair.hasOne(TreeStreak, { foreignKey: 'pairId' });
+Pair.hasMany(AiChat, { foreignKey: 'pairId' });
 
 // LoveClick associations
 LoveClick.belongsTo(Pair, { foreignKey: 'pairId' });
@@ -46,6 +49,10 @@ WishMatch.belongsTo(WishCard, { foreignKey: 'cardId' });
 // TreeStreak associations
 TreeStreak.belongsTo(Pair, { foreignKey: 'pairId' });
 
+// AiChat associations
+AiChat.belongsTo(Pair, { foreignKey: 'pairId' });
+AiChat.belongsTo(User, { foreignKey: 'userId' });
+
 module.exports = {
     User,
     Pair,
@@ -55,4 +62,6 @@ module.exports = {
     WishSwipe,
     WishMatch,
     TreeStreak,
+    AiChat,
 };
+
