@@ -25,7 +25,7 @@ const AiChatPage = () => {
 
     const loadHistory = async () => {
         try {
-            const data = await apiClient.get('/ai/history');
+            const data = await apiClient.getAiHistory();
             setMessages(data.history || []);
         } catch (error) {
             console.error('Failed to load history:', error);
@@ -44,7 +44,7 @@ const AiChatPage = () => {
         setLoading(true);
 
         try {
-            const data = await apiClient.post('/ai/chat', { message: input });
+            const data = await apiClient.sendAiMessage(input);
             const aiMsg = { role: 'model', message: data.response, createdAt: new Date() };
             setMessages(prev => [...prev, aiMsg]);
         } catch (error) {

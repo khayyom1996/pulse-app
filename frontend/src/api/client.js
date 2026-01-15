@@ -11,6 +11,18 @@ const getInitData = () => {
 
 // API client with auth
 const api = {
+    async get(endpoint, options = {}) {
+        return this.request(endpoint, { ...options, method: 'GET' });
+    },
+
+    async post(endpoint, data, options = {}) {
+        return this.request(endpoint, {
+            ...options,
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    },
+
     async request(endpoint, options = {}) {
         const url = `${API_URL}${endpoint}`;
         const headers = {
@@ -126,6 +138,16 @@ const api = {
     getWishStats() {
         return this.request('/api/wishes/stats');
     },
+
+    // AI Psychologist
+    getAiHistory() {
+        return this.get('/api/ai/history');
+    },
+
+    sendAiMessage(message) {
+        return this.post('/api/ai/chat', { message });
+    },
 };
+
 
 export default api;
