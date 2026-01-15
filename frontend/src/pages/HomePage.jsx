@@ -79,10 +79,10 @@ export default function HomePage() {
     };
 
     const copyInviteLink = () => {
-        const botUsername = 'pulse_love_bot'; // TODO: Get from config
+        const botUsername = 'pulse_relationship_bot';
         const link = `https://t.me/${botUsername}?start=invite_${pair.inviteCode}`;
         navigator.clipboard.writeText(link);
-        window.Telegram?.WebApp?.showAlert(t('pair.link_copied'));
+        window.Telegram?.WebApp?.showAlert(t('pair.link_copied') + " ✨💕");
     };
 
     if (loading) {

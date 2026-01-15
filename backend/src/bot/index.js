@@ -23,7 +23,7 @@ bot.command('start', async (ctx) => {
                 await ctx.reply(`❌ ${result.error}`);
             } else {
                 const successMessage = `
-💕 *Поздравляем!*
+💕 *Поздравляем\\!*
 
 Вы успешно связаны с партнёром\\!
 
@@ -106,20 +106,14 @@ function escapeMarkdown(text) {
 // Welcome keyboard with inline buttons
 function getWelcomeKeyboard(isPaired, inviteCode = null) {
     const buttons = [
-        [{ text: '💕 Открыть Pulse', web_app: { url: config.webappUrl } }],
+        [{ text: '🚀 Начать приключение', web_app: { url: config.webappUrl } }],
     ];
 
     if (!isPaired && inviteCode) {
-        const inviteLink = `https://t.me/${config.botUsername || 'pulse_love_bot'}?start=invite_${inviteCode}`;
+        const inviteLink = `https://t.me/${config.botUsername}?start=invite_${inviteCode}`;
+        const shareText = `Присоединяйся ко мне в Pulse! Будем вместе выращивать наше дерево любви и исполнять желания ✨💕`;
         buttons.push([
-            { text: '📤 Поделиться с партнёром', url: `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent('Присоединяйся ко мне в Pulse! 💕')}` },
-        ]);
-    }
-
-    if (!isPaired) {
-        buttons.push([
-            { text: '🔗 Получить код', callback_data: 'get_invite_code' },
-            { text: '📝 Ввести код', callback_data: 'enter_invite_code' },
+            { text: '💕 Поделиться с партнёром', url: `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(shareText)}` },
         ]);
     }
 
@@ -142,7 +136,7 @@ bot.action('get_invite_code', async (ctx) => {
             return;
         }
 
-        const inviteLink = `https://t.me/${config.botUsername || 'pulse_love_bot'}?start=invite_${pair.inviteCode}`;
+        const inviteLink = `https://t.me/${config.botUsername}?start=invite_${pair.inviteCode}`;
 
         await ctx.editMessageText(
             `📎 *Ваш код приглашения:*\n\n\`${pair.inviteCode}\`\n\nИли отправьте эту ссылку партнёру:\n${inviteLink}`,
