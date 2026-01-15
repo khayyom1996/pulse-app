@@ -120,11 +120,13 @@
 
 .chat-input-area {
     padding: 16px 20px;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom));
-    background: rgba(0, 0, 0, 0.3);
+    /* Account for fixed bottom navigation (approx 70px) + safe area */
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     gap: 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
 }
 
 .chat-input-area input {
