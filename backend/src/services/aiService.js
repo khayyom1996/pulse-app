@@ -56,7 +56,9 @@ class AiService {
             // 4. Start chat with Gemini
             const chatSession = this.model.startChat({
                 history: contents,
-                systemInstruction: this.getSystemPrompt(language),
+                systemInstruction: {
+                    parts: [{ text: this.getSystemPrompt(language) }]
+                },
             });
 
             const result = await chatSession.sendMessage(message);
