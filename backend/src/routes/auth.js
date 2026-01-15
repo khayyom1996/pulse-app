@@ -3,6 +3,8 @@ const router = express.Router();
 const authService = require('../services/authService');
 const authMiddleware = require('../middleware/auth');
 
+const geoip = require('geoip-lite');
+
 /**
  * POST /api/auth/login
  * Authenticate user with Telegram WebApp initData
@@ -20,7 +22,20 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid initData' });
         }
 
-        const user = await authService.getOrCreateUser(telegramUser);
+        // Get IP and country
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        let country = null;
+
+        if (ip) {
+            // Handle X-Forwarded-For which can be a comma-separated list
+            const cleanIp = ip.split(',')[0].trim();
+            const geo = geoip.lookup(cleanIp);
+            if (geo) {
+                country = geo.country;
+            }
+        }
+
+        const user = await authService.getOrCreateUser(telegramUser, null, country);
         const pair = await authService.getUserPair(user.id);
         const partner = authService.getPartner(pair, user.id);
 
