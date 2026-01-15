@@ -44,6 +44,10 @@ const User = sequelize.define('User', {
         type: DataTypes.DATE,
         allowNull: true,
     },
+    country: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+    },
 }, {
     tableName: 'users',
     indexes: [

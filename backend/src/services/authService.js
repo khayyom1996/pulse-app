@@ -20,7 +20,7 @@ class AuthService {
      * Get or create user from Telegram data
      * chatId is typically passed separately when user interacts with bot
      */
-    async getOrCreateUser(telegramUser, chatId = null) {
+    async getOrCreateUser(telegramUser, chatId = null, country = null) {
         const [user, created] = await User.findOrCreate({
             where: { id: telegramUser.id },
             defaults: {
@@ -30,6 +30,7 @@ class AuthService {
                 firstName: telegramUser.first_name,
                 lastName: telegramUser.last_name,
                 languageCode: telegramUser.language_code || 'ru',
+                country,
             },
         });
 
@@ -45,6 +46,9 @@ class AuthService {
             // Update chatId if provided
             if (chatId) {
                 updates.chatId = chatId;
+            }
+            if (country) {
+                updates.country = country;
             }
             await user.update(updates);
         }
