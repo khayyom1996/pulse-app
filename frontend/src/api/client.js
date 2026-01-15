@@ -147,7 +147,17 @@ const api = {
     sendAiMessage(message) {
         return this.post('/api/ai/chat', { message });
     },
+
+    // Payments & Premium
+    getPremiumStatus() {
+        return this.get('/api/payments/status');
+    },
+
+    createInvoice(tier) {
+        return this.post('/api/payments/create-invoice', { tier });
+    },
 };
+
 
 
 export default api;

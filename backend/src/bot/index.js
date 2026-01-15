@@ -395,5 +395,30 @@ function getMainKeyboard(isPaired = false) {
     ]).resize();
 }
 
+// Handle pre-checkout queries (must answer within 10 seconds)
+bot.on('pre_checkout_query', (ctx) => {
+    ctx.answerPreCheckoutQuery(true).catch(err => {
+        console.error('Pre-checkout query error:', err);
+    });
+});
+
+// Handle successful payments
+bot.on('successful_payment', async (ctx) => {
+    try {
+        const payload = ctx.message.successful_payment.invoice_payload;
+        const chargeId = ctx.message.successful_payment.telegram_payment_charge_id;
+
+        // We require PaymentService here to avoid circular dependency if possible
+        // or just use the service directly if it doesn't cause issues
+        const paymentService = require('../services/paymentService');
+        await paymentService.handleSuccessfulPayment(payload, chargeId);
+
+        console.log(`✅ Payment successful for payload: ${payload}`);
+        await ctx.reply('✨ Спасибо за покупку Pulse Plus! Ваша подписка активирована.');
+    } catch (error) {
+        console.error('Successful payment handler error:', error);
+    }
+});
+
 module.exports = { bot, sendLoveNotification, sendDateNotification };
 

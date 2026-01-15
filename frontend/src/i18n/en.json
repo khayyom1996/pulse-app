@@ -98,5 +98,22 @@
     "aiOnline": "Online",
     "aiWelcomeTitle": "Your Personal Counselor",
     "aiWelcomeText": "I'm here to support you and your partner. Feel free to ask anything about your relationship.",
-    "typeMessage": "Type a message..."
+    "typeMessage": "Type a message...",
+    "premium": {
+        "title": "Pulse Plus",
+        "subtitle": "Take your relationship to the next level",
+        "monthly": "Monthly",
+        "yearly": "Yearly",
+        "save": "Save 45%",
+        "stars": "stars",
+        "get_plus": "Get Pulse Plus",
+        "active_until": "Active until {{date}}",
+        "features": {
+            "ai": "Unlimited AI Psychologist",
+            "tree": "Exclusive Tree levels",
+            "wishes": "Unlimited wishes matching",
+            "ad_free": "No ads or limits"
+        },
+        "success": "Congrats! Pulse Plus activated."
+    }
 }

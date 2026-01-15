@@ -17,24 +17,29 @@ export default function WishesPage() {
     const [swipeDirection, setSwipeDirection] = useState(null);
     const cardRef = useRef(null);
 
+    const [user, setUser] = useState(null);
+
     useEffect(() => {
         loadData();
     }, [category]);
 
     const loadData = async () => {
         try {
-            const [cardsResult, matchesResult] = await Promise.all([
+            const [cardsResult, matchesResult, userData] = await Promise.all([
                 api.getWishCards(category),
                 api.getMatches(),
+                api.getPremiumStatus()
             ]);
             setCards(cardsResult.cards || []);
             setMatches(matchesResult.matches || []);
+            setUser(userData);
         } catch (error) {
             console.error('Failed to load wishes:', error);
         } finally {
             setLoading(false);
         }
     };
+
 
     const handleSwipe = async (cardId, liked) => {
         haptic('selection');
@@ -189,26 +194,34 @@ export default function WishesPage() {
                             <p>Пока нет совпадений</p>
                         </div>
                     ) : (
-                        matches.map((match) => (
-                            <motion.div
-                                key={match.id}
-                                className={`match-card ${match.isCompleted ? 'completed' : ''}`}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                            >
-                                <span className="match-emoji">{match.WishCard?.emoji || '💜'}</span>
-                                <div className="match-info">
-                                    <p className="match-text">{getCardText(match.WishCard)}</p>
-                                    <span className="match-date">
-                                        {new Date(match.matchedAt).toLocaleDateString()}
-                                    </span>
-                                </div>
-                                {match.isCompleted && <span className="completed-badge">✓</span>}
-                            </motion.div>
-                        ))
+                        <>
+                            {matches.slice(0, user?.isPremium ? undefined : 3).map((match) => (
+                                <motion.div
+                                    key={match.id}
+                                    className={`match-card ${match.isCompleted ? 'completed' : ''}`}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                >
+                                    <span className="match-emoji">{match.WishCard?.emoji || '💜'}</span>
+                                    <div className="match-info">
+                                        <p className="match-text">{getCardText(match.WishCard)}</p>
+                                        <span className="match-date">
+                                            {new Date(match.matchedAt).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                    {match.isCompleted && <span className="completed-badge">✓</span>}
+                                </motion.div>
+                            ))}
+                            {!user?.isPremium && matches.length > 3 && (
+                                <Link to="/premium" className="premium-lock-mini">
+                                    <span>🔓 Посмотреть ещё {matches.length - 3} совпадений</span>
+                                </Link>
+                            )}
+                        </>
                     )}
                 </div>
             )}
+
 
             {/* Match popup */}
             <AnimatePresence>

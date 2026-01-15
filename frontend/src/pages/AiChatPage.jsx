@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import apiClient from '../api/client';
 import './AiChatPage.css';
 
@@ -27,10 +28,14 @@ const AiChatPage = () => {
 
     const loadHistory = async () => {
         try {
-            const data = await apiClient.getAiHistory();
-            setMessages(data.history || []);
+            const [historyData, userData] = await Promise.all([
+                apiClient.getAiHistory(),
+                apiClient.getPremiumStatus()
+            ]);
+            setMessages(historyData.history || []);
+            setUser(userData);
         } catch (error) {
-            console.error('Failed to load history:', error);
+            console.error('Failed to load data:', error);
         } finally {
             setFetchingHistory(false);
         }
@@ -59,8 +64,17 @@ const AiChatPage = () => {
     };
 
     if (fetchingHistory) {
-        return <div className="ai-chat-loading">{t('loading')}...</div>;
+        return <div className="page-loading">{t('app.loading')}...</div>;
     }
+
+    // Basic feature gating: check if user is premium
+    // For now, let's assume we want to show a preview but limit messages,
+    // OR just show a lock screen if not premium.
+    // Let's go with the lock screen for clarity.
+
+    // We need to know if user is premium. We'll fetch it from the API or state.
+    // For simplicity, let's add a state for it or assume it's in the history response.
+    const isPremium = user?.isPremium;
 
     return (
         <div className="ai-chat-page">
@@ -72,54 +86,69 @@ const AiChatPage = () => {
                 </div>
             </header>
 
-            <div className="messages-container">
-                {messages.length === 0 && (
-                    <div className="empty-chat">
-                        <div className="ai-welcome-icon">💬</div>
-                        <h3>{t('aiWelcomeTitle')}</h3>
-                        <p>{t('aiWelcomeText')}</p>
+            {!isPremium && messages.length >= 5 ? (
+                <div className="premium-gate-container">
+                    <div className="premium-gate-content">
+                        <div className="lock-icon">🔒</div>
+                        <h2>Pulse Plus</h2>
+                        <p>{t('premium.features.ai')}</p>
+                        <Link to="/premium" className="btn btn-primary">
+                            {t('premium.get_plus')}
+                        </Link>
                     </div>
-                )}
-                {messages.map((msg, idx) => (
-                    <div key={idx} className={`message-wrapper ${msg.role}`}>
-                        <div className="message-bubble">
-                            {msg.role === 'model' ? (
-                                <ReactMarkdown className="markdown-content">
-                                    {msg.message}
-                                </ReactMarkdown>
-                            ) : (
-                                msg.message
-                            )}
-                            <span className="message-time">
-                                {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                            </span>
-                        </div>
+                </div>
+            ) : (
+                <>
+                    <div className="messages-container">
+                        {messages.length === 0 && (
+                            <div className="empty-chat">
+                                <div className="ai-welcome-icon">💬</div>
+                                <h3>{t('aiWelcomeTitle')}</h3>
+                                <p>{t('aiWelcomeText')}</p>
+                            </div>
+                        )}
+                        {messages.map((msg, idx) => (
+                            <div key={idx} className={`message-wrapper ${msg.role}`}>
+                                <div className="message-bubble">
+                                    {msg.role === 'model' ? (
+                                        <ReactMarkdown className="markdown-content">
+                                            {msg.message}
+                                        </ReactMarkdown>
+                                    ) : (
+                                        msg.message
+                                    )}
+                                    <span className="message-time">
+                                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                        {loading && (
+                            <div className="message-wrapper model">
+                                <div className="message-bubble typing">
+                                    <span className="dot"></span>
+                                    <span className="dot"></span>
+                                    <span className="dot"></span>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={messagesEndRef} />
                     </div>
-                ))}
-                {loading && (
-                    <div className="message-wrapper model">
-                        <div className="message-bubble typing">
-                            <span className="dot"></span>
-                            <span className="dot"></span>
-                            <span className="dot"></span>
-                        </div>
-                    </div>
-                )}
-                <div ref={messagesEndRef} />
-            </div>
 
-            <form className="chat-input-area" onSubmit={sendMessage}>
-                <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder={t('typeMessage')}
-                    disabled={loading}
-                />
-                <button type="submit" disabled={!input.trim() || loading}>
-                    {loading ? '...' : '→'}
-                </button>
-            </form>
+                    <form className="chat-input-area" onSubmit={sendMessage}>
+                        <input
+                            type="text"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            placeholder={t('typeMessage')}
+                            disabled={loading}
+                        />
+                        <button type="submit" disabled={!input.trim() || loading}>
+                            {loading ? '...' : '→'}
+                        </button>
+                    </form>
+                </>
+            )}
         </div>
     );
 };
