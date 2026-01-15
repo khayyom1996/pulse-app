@@ -86,11 +86,11 @@ const AiChatPage = () => {
                 </div>
             </header>
 
-            {!isPremium && messages.length >= 5 ? (
-                <div className="premium-gate-container">
+            {!isPremium ? (
+                <div className="premium-gate-container" style={{ top: '60px' }}>
                     <div className="premium-gate-content">
                         <div className="lock-icon">🔒</div>
-                        <h2>Pulse Plus</h2>
+                        <h2>{t('premium.title')}</h2>
                         <p>{t('premium.features.ai')}</p>
                         <Link to="/premium" className="btn btn-primary">
                             {t('premium.get_plus')}

@@ -41,6 +41,8 @@ export default function LoveButton({ onLoveSent, disabled }) {
                         return c - 1;
                     });
                 }, 1000);
+            } else if (error.message === 'limit_reached') {
+                window.Telegram?.WebApp?.showAlert(t('love.limit_reached_alert'));
             }
         } finally {
             setSending(false);

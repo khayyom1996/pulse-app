@@ -13,15 +13,20 @@ class PaymentService {
         let description = '';
 
         if (tier === 'monthly') {
-            price = 150; // 150 Telegram Stars (~$2.99)
+            price = 150; // 150 Telegram Stars
             durationDays = 30;
             title = 'Pulse Plus - 1 Month';
-            description = 'Premium features for 1 month: exclusive tree levels, unlimited wishes matching, and AI therapist.';
+            description = 'Premium features for 1 month: unlimited AI psychologist, more dates, and unlimited wish matching.';
+        } else if (tier === 'six_months') {
+            price = 699; // 699 Telegram Stars
+            durationDays = 180;
+            title = 'Pulse Plus - 6 Months';
+            description = 'Premium features for 6 months (save 22%): unlimited AI psychologist, more dates, and exclusive tree levels.';
         } else if (tier === 'yearly') {
-            price = 999; // 999 Telegram Stars (~$19.99)
+            price = 999; // 999 Telegram Stars
             durationDays = 365;
             title = 'Pulse Plus - 1 Year';
-            description = 'Premium features for 1 year: exclusive tree levels, unlimited wishes matching, and AI therapist.';
+            description = 'Premium features for 12 months (save 45%): everything unlimited and advance date notifications.';
         } else {
             throw new Error('Invalid subscription tier');
         }
@@ -71,7 +76,9 @@ class PaymentService {
         // Update user premium status
         const user = await User.findByPk(payment.userId);
         if (user) {
-            let durationDays = payment.amount === 999 ? 365 : 30;
+            let durationDays = 30;
+            if (payment.amount === 999) durationDays = 365;
+            else if (payment.amount === 699) durationDays = 180;
 
             const currentExpire = user.premiumUntil && user.premiumUntil > new Date()
                 ? user.premiumUntil

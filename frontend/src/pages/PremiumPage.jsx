@@ -78,9 +78,21 @@ const PremiumPage = () => {
                     </div>
                 </div>
                 <div className="feature-item">
-                    <span className="feature-icon">🚀</span>
+                    <span className="feature-icon">❤️</span>
                     <div className="feature-text">
-                        <h3>{t('premium.features.ad_free')}</h3>
+                        <h3>{t('premium.features.love')}</h3>
+                    </div>
+                </div>
+                <div className="feature-item">
+                    <span className="feature-icon">📅</span>
+                    <div className="feature-text">
+                        <h3>{t('premium.features.dates')}</h3>
+                    </div>
+                </div>
+                <div className="feature-item">
+                    <span className="feature-icon">🔔</span>
+                    <div className="feature-text">
+                        <h3>{t('premium.features.notifs')}</h3>
                     </div>
                 </div>
             </div>
@@ -108,10 +120,21 @@ const PremiumPage = () => {
                     </div>
 
                     <div
+                        className={`premium-option ${selectedTier === 'six_months' ? 'active' : ''}`}
+                        onClick={() => setSelectedTier('six_months')}
+                    >
+                        <div className="save-badge">{t('premium.save_22')}</div>
+                        <div className="option-info">
+                            <h3>{t('premium.six_months')}</h3>
+                            <p>699 {t('premium.stars')}</p>
+                        </div>
+                    </div>
+
+                    <div
                         className={`premium-option ${selectedTier === 'yearly' ? 'active' : ''}`}
                         onClick={() => setSelectedTier('yearly')}
                     >
-                        <div className="save-badge">{t('premium.save')}</div>
+                        <div className="save-badge">{t('premium.save_45')}</div>
                         <div className="option-info">
                             <h3>{t('premium.yearly')}</h3>
                             <p>999 {t('premium.stars')}</p>

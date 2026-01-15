@@ -142,6 +142,10 @@ async function start() {
             await redis.connect();
         }
 
+        // Start reminder job
+        const { startReminderJob } = require('./jobs/reminderJob');
+        startReminderJob();
+
         // Start Express server
         app.listen(config.port, () => {
             console.log(`🚀 Server running on port ${config.port}`);

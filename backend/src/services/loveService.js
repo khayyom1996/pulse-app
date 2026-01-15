@@ -6,7 +6,30 @@ class LoveService {
      * Send love to partner
      * Returns: { success, message, shouldNotify, cooldownRemaining }
      */
-    async sendLove(pairId, senderId, receiverId, message = null) {
+    async sendLove(pairId, senderId, receiverId, message = null, isPremium = false) {
+        // Feature gating: free users can only send love once a day
+        if (!isPremium) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const todayClicks = await LoveClick.count({
+                where: {
+                    senderId,
+                    createdAt: {
+                        [require('sequelize').Op.gte]: today,
+                    },
+                },
+            });
+
+            if (todayClicks >= 1) {
+                return {
+                    success: false,
+                    error: 'limit_reached',
+                    message: 'Free users can only send love once a day. Upgrade to Pulse Plus for unlimited love!',
+                };
+            }
+        }
+
         // Check cooldown (5 seconds between clicks)
         const cooldownKey = `love_cooldown:${senderId}`;
 

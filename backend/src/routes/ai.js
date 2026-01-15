@@ -40,6 +40,8 @@ router.post('/chat', async (req, res) => {
         if (!telegramUser) return res.status(401).json({ error: 'Unauthorized' });
 
         const user = await authService.getOrCreateUser(telegramUser);
+        if (!user.isPremium) return res.status(403).json({ error: 'Premium required' });
+
         const pair = await authService.getUserPair(user.id);
         if (!pair) return res.status(404).json({ error: 'Pair not found' });
 

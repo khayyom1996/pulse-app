@@ -27,7 +27,8 @@ router.post('/', async (req, res) => {
         // Determine receiver
         const receiverId = pair.user1Id === userId ? pair.user2Id : pair.user1Id;
 
-        const result = await loveService.sendLove(pair.id, userId, receiverId, message);
+        const sender = await User.findByPk(userId);
+        const result = await loveService.sendLove(pair.id, userId, receiverId, message, sender?.isPremium);
 
         if (!result.success) {
             return res.status(429).json({

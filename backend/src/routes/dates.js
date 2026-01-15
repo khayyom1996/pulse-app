@@ -3,7 +3,7 @@ const router = express.Router();
 const dateService = require('../services/dateService');
 const authService = require('../services/authService');
 const { sendDateNotification } = require('../bot');
-const { User } = require('../models');
+const { User, ImportantDate } = require('../models');
 const { Op } = require('sequelize');
 
 /**
@@ -64,6 +64,17 @@ router.post('/', async (req, res) => {
         const pair = await authService.getUserPair(userId);
         if (!pair) {
             return res.status(400).json({ error: 'Not paired' });
+        }
+
+        const user = await User.findByPk(userId);
+        if (!user.isPremium) {
+            const dateCount = await ImportantDate.count({ where: { pairId: pair.id } });
+            if (dateCount >= 3) {
+                return res.status(403).json({
+                    error: 'limit_reached',
+                    message: 'Free users can only add 3 important dates. Upgrade to Pulse Plus for more!'
+                });
+            }
         }
 
         const date = await dateService.createDate(pair.id, userId, {
