@@ -118,6 +118,7 @@
             "notifs": "1-day advance notifications 🔔",
             "dates": "More than 3 dates 📅"
         },
-        "success": "Congrats! Pulse Plus activated."
+        "success": "Congrats! Pulse Plus activated.",
+        "limit_reached_alert": "Free users can send love once a day. Upgrade to Pulse Plus for unlimited love! ❤️"
     }
 }
