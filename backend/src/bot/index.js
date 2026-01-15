@@ -124,7 +124,8 @@ function getWelcomeKeyboard(isPaired, inviteCode = null) {
     }
 
     buttons.push([
-        { text: '❓ Как это работает', callback_data: 'how_it_works' },
+        { text: '⭐️ Pulse Plus', web_app: { url: `${config.webappUrl}/premium` } },
+        { text: '❓ Как работает Pulse', callback_data: 'how_it_works' },
     ]);
 
     return { reply_markup: { inline_keyboard: buttons } };
@@ -259,6 +260,29 @@ bot.on('text', async (ctx) => {
             }
         }
     }
+});
+
+// Premium command - show premium info and link
+bot.command('premium', async (ctx) => {
+    const premiumText = `
+⭐ *Pulse Plus* — новый уровень ваших отношений!
+
+Что вы получите:
+🧠 *ИИ Психолог* — безлимитное общение и советы
+🌳 *Эксклюзивные деревья* — новые уровни и формы
+✨ *Тайные желания* — безлимитные совпадения
+🚀 *Приоритет* — доступ к новым функциям первым
+
+💎 Стоимость: всего от 150 звёзд в месяц!
+`;
+    await ctx.replyWithMarkdownV2(escapeMarkdown(premiumText), {
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: '💎 Получить Pulse Plus', web_app: { url: `${config.webappUrl}/premium` } }],
+                [{ text: '◀️ Назад', callback_data: 'back_to_start' }],
+            ],
+        },
+    });
 });
 
 // Link command - create or get invite link

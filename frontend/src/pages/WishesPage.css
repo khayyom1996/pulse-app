@@ -242,10 +242,26 @@
     font-size: var(--font-size-2xl);
     background: var(--gradient-love);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: var(--spacing-sm);
 }
 
 .match-popup p {
     color: var(--text-secondary);
+}
+
+.premium-lock-mini {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-love);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    color: white;
+    text-decoration: none;
+    margin-top: var(--spacing-md);
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+    animation: fadeIn 0.3s ease-out;
 }
