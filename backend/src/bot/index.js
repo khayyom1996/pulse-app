@@ -406,13 +406,15 @@ async function sendDateNotification(receiverId, creatorName, title, eventDate, c
             year: 'numeric',
         });
 
-        const text = `${emoji} ${creatorName} добавил(а) важную дату:\n\n*${title}*\n📅 ${formattedDate}`;
+        const safeTitle = escapeMarkdown(title);
+        const safeCreatorName = escapeMarkdown(creatorName);
+        const text = `${emoji} ${safeCreatorName} добавил(а) важную дату:\n\n*${safeTitle}*\n📅 ${formattedDate}`;
 
         await bot.telegram.sendMessage(receiverId, text, {
-            parse_mode: 'Markdown',
+            parse_mode: 'MarkdownV2',
             reply_markup: {
                 inline_keyboard: [[
-                    { text: '📅 Открыть даты', web_app: { url: `${config.webappUrl}/dates` } },
+                    { text: '📅 Открыть даты', web_app: { url: `${config.webappUrl || 'https://t.me/pulse_relationship_bot'}/dates` } },
                 ]],
             },
         });

@@ -47,6 +47,7 @@ class PaymentService {
             userId: user.id,
             amount: price,
             payload,
+            tier,
             status: 'pending',
         });
 
@@ -86,8 +87,8 @@ class PaymentService {
         const user = await User.findByPk(payment.userId);
         if (user) {
             let durationDays = 30;
-            if (payment.amount === 999) durationDays = 365;
-            else if (payment.amount === 699) durationDays = 180;
+            if (payment.tier === 'yearly') durationDays = 365;
+            else if (payment.tier === 'six_months') durationDays = 180;
 
             const currentExpire = user.premiumUntil && user.premiumUntil > new Date()
                 ? user.premiumUntil

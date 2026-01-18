@@ -29,6 +29,10 @@ const Payment = sequelize.define('Payment', {
         allowNull: false,
         unique: true,
     },
+    tier: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+    },
     telegramPaymentChargeId: {
         type: DataTypes.STRING,
         allowNull: true,

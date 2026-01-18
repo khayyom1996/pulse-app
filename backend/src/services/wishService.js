@@ -1,4 +1,4 @@
-const { WishCard, WishSwipe, WishMatch } = require('../models');
+const { WishCard, WishSwipe, WishMatch, User } = require('../models');
 const { Op } = require('sequelize');
 
 class WishService {
@@ -14,9 +14,18 @@ class WishService {
         const swipedIds = swipedCards.map(s => s.cardId);
 
         // Build query
-        const where = {
-            isPremium: false, // Only free cards in MVP
-        };
+        const where = {};
+
+        // Only show premium cards if user IS premium
+        // (Free users can see only free cards)
+        if (!userId) {
+            where.isPremium = false;
+        } else {
+            const user = await User.findByPk(userId);
+            if (!user || !user.isPremium) {
+                where.isPremium = false;
+            }
+        }
 
         if (swipedIds.length > 0) {
             where.id = { [Op.notIn]: swipedIds };

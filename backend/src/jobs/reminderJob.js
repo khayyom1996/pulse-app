@@ -3,6 +3,12 @@ const { ImportantDate, User, Pair } = require('../models');
 const { bot } = require('../bot');
 const { Op } = require('sequelize');
 
+// Helper to escape markdown v2 special characters
+function escapeMarkdown(text) {
+    if (!text) return '';
+    return text.toString().replace(/[_*\[\]()~`>#+=|{}.!-]/g, '\\$&');
+}
+
 /**
  * Job to send reminders for upcoming dates to premium users
  * Runs every day at 9:00 AM
@@ -49,16 +55,18 @@ const startReminderJob = () => {
                     }
 
                     try {
+                        const safeTitle = escapeMarkdown(date.title);
+                        const safeDesc = escapeMarkdown(date.description);
                         const message = `🔔 *Напоминание о завтрашнем событии:*
 
-✨ *${date.title}*
+✨ *${safeTitle}*
 📅 Дата: завтра, ${new Date(date.eventDate).toLocaleDateString('ru-RU')}
-${date.description ? `\n📝 _${date.description}_` : ''}
+${safeDesc ? `\n📝 _${safeDesc}_` : ''}
 
-Не забудьте подготовиться! 💕`;
+Не забудьте подготовиться\\! 💕`;
 
                         await bot.telegram.sendMessage(user.chatId || user.id, message, {
-                            parse_mode: 'Markdown'
+                            parse_mode: 'MarkdownV2'
                         });
                         console.log(`Sent reminder to user ${user.id} for date ${date.id}`);
                     } catch (err) {
