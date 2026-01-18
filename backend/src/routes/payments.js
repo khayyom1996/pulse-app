@@ -42,6 +42,7 @@ router.get('/status', async (req, res) => {
         res.json({
             isPremium: user.isPremium,
             premiumUntil: user.premiumUntil,
+            discount: user.discount || 0,
         });
     } catch (error) {
         console.error('Payment Status Error:', error);

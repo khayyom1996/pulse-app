@@ -31,6 +31,15 @@ class PaymentService {
             throw new Error('Invalid subscription tier');
         }
 
+        // Apply discount if user has one
+        if (user.discount > 0) {
+            price = Math.round(price * (1 - user.discount / 100));
+            description += ` (Applied ${user.discount}% discount!)`;
+
+            // Note: We might want to clear the discount after successful payment or keep it.
+            // For now, let's keep it until payment is successful.
+        }
+
         const payload = crypto.randomBytes(16).toString('hex');
 
         // Store pending payment
@@ -89,6 +98,8 @@ class PaymentService {
             await user.update({
                 isPremium: true,
                 premiumUntil: newExpire,
+                discount: 0,
+                appliedPromoCode: null
             });
 
             // Notify user via bot

@@ -156,3 +156,18 @@
     justify-content: center;
     height: 100vh;
 }
+.old-price {
+    text-decoration: line-through;
+    opacity: 0.5;
+    font-size: 0.9em;
+    margin-right: 4px;
+}
+
+.save-badge.discount {
+    background: #00b894;
+    color: white;
+}
+
+.save-badge.discount.secondary {
+    top: 36px;
+}

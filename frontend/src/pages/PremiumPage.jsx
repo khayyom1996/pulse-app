@@ -113,9 +113,17 @@ const PremiumPage = () => {
                         className={`premium-option ${selectedTier === 'monthly' ? 'active' : ''}`}
                         onClick={() => setSelectedTier('monthly')}
                     >
+                        {premiumStatus.discount > 0 && <div className="save-badge discount">-{premiumStatus.discount}%</div>}
                         <div className="option-info">
                             <h3>{t('premium.monthly')}</h3>
-                            <p>150 {t('premium.stars')}</p>
+                            <p>
+                                {premiumStatus.discount > 0 ? (
+                                    <>
+                                        <span className="old-price">150</span>
+                                        <span> {Math.round(150 * (1 - premiumStatus.discount / 100))} {t('premium.stars')}</span>
+                                    </>
+                                ) : `150 ${t('premium.stars')}`}
+                            </p>
                         </div>
                     </div>
 
@@ -124,9 +132,17 @@ const PremiumPage = () => {
                         onClick={() => setSelectedTier('six_months')}
                     >
                         <div className="save-badge">{t('premium.save_22')}</div>
+                        {premiumStatus.discount > 0 && <div className="save-badge discount secondary">-{premiumStatus.discount}% OFF</div>}
                         <div className="option-info">
                             <h3>{t('premium.six_months')}</h3>
-                            <p>699 {t('premium.stars')}</p>
+                            <p>
+                                {premiumStatus.discount > 0 ? (
+                                    <>
+                                        <span className="old-price">699</span>
+                                        <span> {Math.round(699 * (1 - premiumStatus.discount / 100))} {t('premium.stars')}</span>
+                                    </>
+                                ) : `699 ${t('premium.stars')}`}
+                            </p>
                         </div>
                     </div>
 
@@ -135,9 +151,17 @@ const PremiumPage = () => {
                         onClick={() => setSelectedTier('yearly')}
                     >
                         <div className="save-badge">{t('premium.save_45')}</div>
+                        {premiumStatus.discount > 0 && <div className="save-badge discount secondary">-{premiumStatus.discount}% OFF</div>}
                         <div className="option-info">
                             <h3>{t('premium.yearly')}</h3>
-                            <p>999 {t('premium.stars')}</p>
+                            <p>
+                                {premiumStatus.discount > 0 ? (
+                                    <>
+                                        <span className="old-price">999</span>
+                                        <span> {Math.round(999 * (1 - premiumStatus.discount / 100))} {t('premium.stars')}</span>
+                                    </>
+                                ) : `999 ${t('premium.stars')}`}
+                            </p>
                         </div>
                     </div>
 
