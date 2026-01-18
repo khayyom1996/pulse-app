@@ -13,12 +13,13 @@ bot.command('start', async (ctx) => {
         const user = await authService.getOrCreateUser(telegramUser, chatId);
         const pair = await authService.getUserPair(user.id);
 
-        // Check for deep link (invite code)
+        // Check for deep link (invite code or promo code)
         const startPayload = ctx.message.text.split(' ')[1];
+
         if (startPayload && startPayload.startsWith('invite_')) {
             const inviteCode = startPayload.replace('invite_', '');
             const result = await authService.joinPair(user.id, inviteCode);
-
+            // ... (rest of join logic)
             if (result.error) {
                 await ctx.reply(`❌ ${result.error}`);
             } else {
@@ -49,6 +50,20 @@ bot.command('start', async (ctx) => {
                     console.error('Could not notify partner:', e.message);
                 }
                 return;
+            }
+        } else if (startPayload && startPayload.startsWith('promo_')) {
+            const promoCode = startPayload.replace('promo_', '');
+            const promoService = require('../services/promoService');
+            const result = await promoService.applyCode(user.id, promoCode);
+
+            if (result.error) {
+                await ctx.reply(`❌ Ошибка активации: ${result.error === 'invalid_code' ? 'Код не найден' : 'Код не активен'}`);
+            } else {
+                if (result.type === 'premium') {
+                    await ctx.reply(`✨ *Pulse Plus активирован!*\n\nВы получили ${result.days} дней премиум-доступа через промокод\\!`, { parse_mode: 'MarkdownV2' });
+                } else {
+                    await ctx.reply(`✨ *Промокод на скидку ${result.discount}% применен!*\n\nИспользуйте его при оформлении Pulse Plus в приложении\\.`, { parse_mode: 'MarkdownV2' });
+                }
             }
         }
 

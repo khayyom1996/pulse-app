@@ -577,3 +577,42 @@
         grid-template-columns: 1fr;
     }
 }
+/* Promo Panel */
+.promo-form {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.promo-form input, .promo-form select {
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+}
+
+.promo-form button {
+    padding: 10px 20px;
+    background: #4ECDC4;
+    border: none;
+    border-radius: 8px;
+    color: #1a1a2e;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.delete-btn-cell {
+    background: rgba(255, 71, 87, 0.1);
+    border: 1px solid rgba(255, 71, 87, 0.3);
+    color: #ff4757;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}

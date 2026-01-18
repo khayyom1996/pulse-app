@@ -8,6 +8,7 @@ const WishMatch = require('./WishMatch');
 const TreeStreak = require('./TreeStreak');
 const AiChat = require('./AiChat');
 const Payment = require('./Payment');
+const PromoCode = require('./PromoCode');
 
 // User associations
 User.hasOne(Pair, { as: 'pairAsUser1', foreignKey: 'user1Id' });
@@ -69,6 +70,7 @@ module.exports = {
     TreeStreak,
     AiChat,
     Payment,
+    PromoCode,
 };
 
 

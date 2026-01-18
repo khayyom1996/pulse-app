@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { User, Pair, LoveClick, ImportantDate, WishMatch, WishSwipe, TreeStreak } = require('../models');
+const { User, Pair, LoveClick, ImportantDate, WishMatch, WishSwipe, TreeStreak, PromoCode } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('../config/database');
 const { bot } = require('../bot');
@@ -357,6 +357,51 @@ router.delete('/clear-data', adminAuth, async (req, res) => {
     } catch (error) {
         console.error('Clear data error:', error);
         res.status(500).json({ error: 'Failed to clear data: ' + error.message });
+    }
+});
+
+/**
+ * GET /api/admin/promo-codes
+ */
+router.get('/promo-codes', adminAuth, async (req, res) => {
+    try {
+        const promoCodes = await PromoCode.findAll({
+            order: [['createdAt', 'DESC']],
+        });
+        res.json({ promoCodes });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to get promo codes' });
+    }
+});
+
+/**
+ * POST /api/admin/promo-codes
+ */
+router.post('/promo-codes', adminAuth, async (req, res) => {
+    try {
+        const { code, type, value, usageLimit, expiresAt } = req.body;
+        const promoCode = await PromoCode.create({
+            code: code.toUpperCase(),
+            type,
+            value,
+            usageLimit: usageLimit || null,
+            expiresAt: expiresAt || null,
+        });
+        res.json({ promoCode });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * DELETE /api/admin/promo-codes/:id
+ */
+router.delete('/promo-codes/:id', adminAuth, async (req, res) => {
+    try {
+        await PromoCode.destroy({ where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete promo code' });
     }
 });
 

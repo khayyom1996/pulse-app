@@ -15,6 +15,8 @@ export default function AdminPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [promoCodes, setPromoCodes] = useState([]);
+    const [newPromo, setNewPromo] = useState({ code: '', type: 'premium', value: 30, usageLimit: '' });
 
     // Broadcast state
     const [broadcastMessage, setBroadcastMessage] = useState('');
@@ -133,6 +135,50 @@ export default function AdminPage() {
         }
     };
 
+    const loadPromoCodes = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/api/admin/promo-codes`, { headers });
+            if (res.ok) {
+                const data = await res.json();
+                setPromoCodes(data.promoCodes || []);
+            }
+        } catch (e) {
+            console.error('Promo codes load error:', e);
+        }
+        setLoading(false);
+    };
+
+    const createPromoCode = async () => {
+        if (!newPromo.code || !newPromo.value) return;
+        try {
+            const res = await fetch(`${API_URL}/api/admin/promo-codes`, {
+                method: 'POST',
+                headers: { ...headers, 'Content-Type': 'application/json' },
+                body: JSON.stringify(newPromo),
+            });
+            if (res.ok) {
+                setNewPromo({ code: '', type: 'premium', value: 30, usageLimit: '' });
+                loadPromoCodes();
+            }
+        } catch (e) {
+            console.error('Create promo error:', e);
+        }
+    };
+
+    const deletePromoCode = async (id) => {
+        if (!window.confirm('Удалить промокод?')) return;
+        try {
+            const res = await fetch(`${API_URL}/api/admin/promo-codes/${id}`, {
+                method: 'DELETE',
+                headers,
+            });
+            if (res.ok) loadPromoCodes();
+        } catch (e) {
+            console.error('Delete promo error:', e);
+        }
+    };
+
     useEffect(() => {
         if (adminKey && localStorage.getItem('pulse_admin_key') === adminKey) {
             authenticate();
@@ -142,6 +188,9 @@ export default function AdminPage() {
     useEffect(() => {
         if (isAuthenticated && activeTab === 'users') {
             loadUsers();
+        }
+        if (isAuthenticated && activeTab === 'promo') {
+            loadPromoCodes();
         }
     }, [activeTab, isAuthenticated]);
 
@@ -172,6 +221,7 @@ export default function AdminPage() {
     const menuItems = [
         { id: 'dashboard', icon: '📊', label: 'Dashboard' },
         { id: 'users', icon: '👥', label: 'Пользователи' },
+        { id: 'promo', icon: '🎟️', label: 'Промокоды' },
         { id: 'broadcast', icon: '📢', label: 'Рассылка' },
         { id: 'settings', icon: '⚙️', label: 'Настройки' },
     ];
@@ -390,6 +440,73 @@ export default function AdminPage() {
                                         }
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Promo Codes Tab */}
+                    {activeTab === 'promo' && (
+                        <div className="panel promo-panel">
+                            <h3>🎟️ Управление промокодами</h3>
+
+                            <div className="promo-form">
+                                <input
+                                    placeholder="КОД (напр. LOVE40)"
+                                    value={newPromo.code}
+                                    onChange={e => setNewPromo({ ...newPromo, code: e.target.value.toUpperCase() })}
+                                />
+                                <select value={newPromo.type} onChange={e => setNewPromo({ ...newPromo, type: e.target.value })}>
+                                    <option value="premium">Премиум (дней)</option>
+                                    <option value="discount">Скидка (%)</option>
+                                </select>
+                                <input
+                                    type="number"
+                                    placeholder="Значение"
+                                    value={newPromo.value}
+                                    onChange={e => setNewPromo({ ...newPromo, value: e.target.value })}
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="Лимит (пусто = ∞)"
+                                    value={newPromo.usageLimit}
+                                    onChange={e => setNewPromo({ ...newPromo, usageLimit: e.target.value })}
+                                />
+                                <button onClick={createPromoCode}>Добавить</button>
+                            </div>
+
+                            <div className="users-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Код</th>
+                                            <th>Тип</th>
+                                            <th>Значение</th>
+                                            <th>Использовано</th>
+                                            <th>Лимит</th>
+                                            <th>Ссылка</th>
+                                            <th>Действие</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {promoCodes.map(p => (
+                                            <tr key={p.id}>
+                                                <td><strong>{p.code}</strong></td>
+                                                <td>{p.type === 'premium' ? '🎁 Премиум' : '💰 Скидка'}</td>
+                                                <td>{p.value} {p.type === 'premium' ? 'дн.' : '%'}</td>
+                                                <td>{p.timesUsed}</td>
+                                                <td>{p.usageLimit || '∞'}</td>
+                                                <td>
+                                                    <code style={{ fontSize: '10px' }}>
+                                                        t.me/pulse_relationship_bot?start=promo_{p.code}
+                                                    </code>
+                                                </td>
+                                                <td>
+                                                    <button className="delete-btn-cell" onClick={() => deletePromoCode(p.id)}>🗑️</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     )}

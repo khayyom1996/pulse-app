@@ -48,6 +48,14 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING(100),
         allowNull: true,
     },
+    discount: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+    },
+    appliedPromoCode: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+    },
 }, {
     tableName: 'users',
     indexes: [
