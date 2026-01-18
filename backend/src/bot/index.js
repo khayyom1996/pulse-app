@@ -118,7 +118,7 @@ ${pair ? `📎 *Ваш код приглашения:* \`${pair.inviteCode}\`\n\
 // Helper to escape markdown v2 special characters
 function escapeMarkdown(text) {
     if (!text) return '';
-    return text.replace(/[_*\[\]()~`>#+=|{}.!-]/g, '\\$&');
+    return text.toString().replace(/[_*\[\]()~`>#+=|{}.!-]/g, '\\$&');
 }
 
 // Welcome keyboard with inline buttons
@@ -372,11 +372,15 @@ bot.action('cancel_unlink', async (ctx) => {
 // Send love notification to partner (called from API)
 async function sendLoveNotification(receiverId, senderName, message = null) {
     try {
-        const text = message
-            ? `💕 ${senderName} отправил вам любовь:\n\n"${message}"`
-            : `💕 ${senderName} думает о вас и отправляет любовь!`;
+        const safeName = escapeMarkdown(senderName);
+        const safeMsg = escapeMarkdown(message);
+
+        const text = safeMsg
+            ? `💕 *${safeName}* отправил вам любовь:\n\n"${safeMsg}"`
+            : `💕 *${safeName}* думает о вас и отправляет любовь\\!`;
 
         await bot.telegram.sendMessage(receiverId, text, {
+            parse_mode: 'MarkdownV2',
             reply_markup: {
                 inline_keyboard: [[
                     { text: '💕 Открыть Pulse', web_app: { url: config.webappUrl } },
