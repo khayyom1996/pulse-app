@@ -60,11 +60,14 @@ bot.command('start', async (ctx) => {
                 await ctx.reply(`❌ Ошибка активации: ${result.error === 'invalid_code' ? 'Код не найден' : 'Код не активен'}`);
             } else {
                 if (result.type === 'premium') {
-                    await ctx.reply(`✨ *Pulse Plus активирован!*\n\nВы получили ${result.days} дней премиум-доступа через промокод\\!`, { parse_mode: 'MarkdownV2' });
+                    const message = `✨ *Pulse Plus активирован\\!*\n\nВы получили ${result.days} дней премиум\\-доступа через промокод\\!`;
+                    await ctx.replyWithMarkdownV2(message, getWelcomeKeyboard(pair && pair.user2Id, pair?.inviteCode));
                 } else {
-                    await ctx.reply(`✨ *Промокод на скидку ${result.discount}% применен!*\n\nИспользуйте его при оформлении Pulse Plus в приложении\\.`, { parse_mode: 'MarkdownV2' });
+                    const message = `✨ *Промокод на скидку ${result.discount}% применен\\!*\n\nИспользуйте его при оформлении Pulse Plus в приложении\\.`;
+                    await ctx.replyWithMarkdownV2(message, getWelcomeKeyboard(pair && pair.user2Id, pair?.inviteCode));
                 }
             }
+            return;
         }
 
         // Regular start - show beautiful welcome
