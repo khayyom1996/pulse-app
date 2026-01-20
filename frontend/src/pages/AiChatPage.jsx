@@ -12,6 +12,7 @@ const AiChatPage = () => {
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [fetchingHistory, setFetchingHistory] = useState(true);
+    const [user, setUser] = useState(null);
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
