@@ -56,6 +56,10 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING(50),
         allowNull: true,
     },
+    receivedValentineGift: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
 }, {
     tableName: 'users',
     indexes: [

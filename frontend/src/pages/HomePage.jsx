@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import LoveButton from '../components/LoveButton';
 import TreeStreak from '../components/TreeStreak';
+import ValentineCountdown from '../components/ValentineCountdown';
 import { useTelegram } from '../hooks/useTelegram';
 import api from '../api/client';
 import './HomePage.css';
@@ -169,6 +170,9 @@ export default function HomePage() {
                         <span className="today-label">{t('home.today_loves')}</span>
                     </div>
                 </div>
+
+                {/* Valentine's Day Special */}
+                <ValentineCountdown />
 
                 {/* Love Button */}
                 <LoveButton onLoveSent={handleLoveSent} disabled={!pair.isComplete} />

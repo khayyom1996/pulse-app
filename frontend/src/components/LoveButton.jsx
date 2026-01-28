@@ -12,6 +12,7 @@ export default function LoveButton({ onLoveSent, disabled }) {
     const [sending, setSending] = useState(false);
     const [cooldown, setCooldown] = useState(0);
     const [showHeart, setShowHeart] = useState(false);
+    const isValentine = new Date().getUTCMonth() === 1 && new Date().getUTCDate() === 14;
 
     const handlePress = useCallback(async () => {
         if (disabled || sending || cooldown > 0) return;
@@ -53,17 +54,18 @@ export default function LoveButton({ onLoveSent, disabled }) {
     return (
         <div className="love-button-container">
             <motion.button
-                className={`love-button ${pressed ? 'pressed' : ''} ${disabled ? 'disabled' : ''}`}
+                className={`love-button ${pressed ? 'pressed' : ''} ${disabled ? 'disabled' : ''} ${isValentine ? 'festive' : ''}`}
                 whileTap={{ scale: 0.95 }}
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.05 }}
                 onClick={handlePress}
                 disabled={disabled || sending || cooldown > 0}
             >
                 <motion.span
                     className="love-button-icon"
-                    animate={pressed ? { scale: [1, 1.2, 1] } : {}}
+                    animate={pressed ? { scale: [1, 1.4, 1] } : isValentine ? { scale: [1, 1.1, 1] } : {}}
+                    transition={isValentine ? { duration: 2, repeat: Infinity } : {}}
                 >
-                    💕
+                    {isValentine ? '💝' : '💕'}
                 </motion.span>
 
                 {cooldown > 0 ? (
@@ -76,15 +78,15 @@ export default function LoveButton({ onLoveSent, disabled }) {
             {/* Floating hearts animation */}
             {showHeart && (
                 <div className="floating-hearts">
-                    {[...Array(8)].map((_, i) => (
+                    {[...Array(isValentine ? 15 : 8)].map((_, i) => (
                         <motion.span
                             key={i}
                             className="floating-heart"
                             initial={{
                                 opacity: 1,
                                 y: 0,
-                                x: (Math.random() - 0.5) * 100,
-                                scale: 0.5 + Math.random() * 0.5,
+                                x: (Math.random() - 0.5) * (isValentine ? 150 : 100),
+                                scale: 0.5 + Math.random() * (isValentine ? 1 : 0.5),
                             }}
                             animate={{
                                 opacity: 0,

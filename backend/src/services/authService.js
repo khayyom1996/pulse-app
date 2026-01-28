@@ -53,7 +53,34 @@ class AuthService {
             await user.update(updates);
         }
 
+        // Grant Valentine's gift if applicable
+        await this.checkValentineGift(user);
+
         return user;
+    }
+
+    /**
+     * Grant 1 day of premium if it's Valentine's Day
+     */
+    async checkValentineGift(user) {
+        const now = new Date();
+        // February is month 1 (0-indexed)
+        const isValentine = now.getUTCMonth() === 1 && now.getUTCDate() === 14;
+
+        if (isValentine && !user.receivedValentineGift) {
+            const currentPremiumUntil = user.premiumUntil ? new Date(user.premiumUntil) : new Date();
+            const baseDate = currentPremiumUntil > now ? currentPremiumUntil : now;
+
+            const newPremiumUntil = new Date(baseDate.getTime() + 24 * 60 * 60 * 1000);
+
+            await user.update({
+                premiumUntil: newPremiumUntil,
+                isPremium: true,
+                receivedValentineGift: true
+            });
+            return true;
+        }
+        return false;
     }
 
 
