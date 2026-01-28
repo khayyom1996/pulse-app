@@ -14,6 +14,7 @@ const wishesRoutes = require('./routes/wishes');
 const adminRoutes = require('./routes/admin');
 const aiRoutes = require('./routes/ai');
 const paymentRoutes = require('./routes/payments');
+const rateLimit = require('express-rate-limit');
 
 // Import middleware
 const authMiddleware = require('./middleware/auth');
@@ -64,6 +65,26 @@ app.use(cors({
 }));
 app.use(morgan(config.nodeEnv === 'production' ? 'combined' : 'dev'));
 app.use(express.json());
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please try again later.' }
+});
+
+// Apply limiter to all API routes
+app.use('/api/', limiter);
+
+// More strict limiter for auth routes
+const authLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 20, // limit each IP to 20 requests per windowMs
+    message: { error: 'Too many login attempts, please try again in an hour.' }
+});
+app.use('/api/auth/login', authLimiter);
 
 // Health check
 app.get('/health', (req, res) => {

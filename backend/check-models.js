@@ -5,7 +5,7 @@ async function listModels() {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     // There is no direct listModels in the simple SDK, usually we just try names.
     // Let's try 'gemini-1.5-pro' and 'gemini-pro'
-    const modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+    const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
 
     for (const modelName of modelsToTry) {
         console.log(`Checking ${modelName}...`);
