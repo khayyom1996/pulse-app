@@ -15,8 +15,6 @@ const adminRoutes = require('./routes/admin');
 const aiRoutes = require('./routes/ai');
 const paymentRoutes = require('./routes/payments');
 const rateLimit = require('express-rate-limit');
-const Sentry = require("@sentry/node");
-const { nodeProfilingIntegration } = require("@sentry/profiling-node");
 
 // Import middleware
 const authMiddleware = require('./middleware/auth');
@@ -54,19 +52,6 @@ async function seedWishCards() {
 }
 
 const app = express();
-
-if (config.sentryDsn) {
-    Sentry.init({
-        dsn: config.sentryDsn,
-        integrations: [
-            nodeProfilingIntegration(),
-        ],
-        // Performance Monitoring
-        tracesSampleRate: 1.0, //  Capture 100% of the transactions
-        // Set sampling rate for profiling - this is relative to tracesSampleRate
-        profilesSampleRate: 1.0,
-    });
-}
 
 // Middleware
 app.use(helmet({
@@ -143,11 +128,6 @@ app.use('/webhook', bot.webhookCallback('/'));
 app.use((req, res) => {
     res.status(404).json({ error: 'Not found' });
 });
-
-// The error handler must be registered before any other error middleware and after all controllers
-if (config.sentryDsn) {
-    Sentry.setupExpressErrorHandler(app);
-}
 
 // Error handler
 app.use((err, req, res, next) => {

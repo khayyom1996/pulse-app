@@ -20,9 +20,6 @@ module.exports = {
     // Security
     jwtSecret: process.env.JWT_SECRET || 'default-secret',
 
-    // Sentry
-    sentryDsn: process.env.SENTRY_DSN,
-
     // Feature flags
     enableRedis: process.env.ENABLE_REDIS !== 'false',
 };

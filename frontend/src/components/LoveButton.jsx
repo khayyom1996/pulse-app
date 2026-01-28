@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import api from '../api/client';
+import { trackEvent } from '../config/firebase';
 import './LoveButton.css';
 
 export default function LoveButton({ onLoveSent, disabled }) {
@@ -23,6 +24,7 @@ export default function LoveButton({ onLoveSent, disabled }) {
 
         try {
             await api.sendLove();
+            trackEvent('send_love', { method: 'button' });
 
             haptic('notification');
             setShowHeart(true);
