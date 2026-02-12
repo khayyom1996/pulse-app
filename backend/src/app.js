@@ -141,11 +141,26 @@ app.use((err, req, res, next) => {
 
 // Start server
 async function start() {
-    try {
-        // Connect to database
-        await sequelize.authenticate();
-        console.log('✅ Database connected');
+    let retries = 5;
+    while (retries > 0) {
+        try {
+            // Connect to database
+            console.log(`📡 Attempting to connect to database... (Retries left: ${retries})`);
+            await sequelize.authenticate();
+            console.log('✅ Database connected');
+            break; // Success!
+        } catch (error) {
+            retries -= 1;
+            console.error(`❌ Connection failed. Retrying in 5s...`, error.message);
+            if (retries === 0) {
+                console.error('❌ Max retries reached. Exiting.');
+                process.exit(1);
+            }
+            await new Promise(res => setTimeout(res, 5000));
+        }
+    }
 
+    try {
         // Sync models
         await sequelize.sync({ alter: true });
         console.log('✅ Models synced');
