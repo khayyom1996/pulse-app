@@ -5,9 +5,9 @@ const sequelize = new Sequelize(config.databaseUrl, {
     dialect: 'postgres',
     logging: config.nodeEnv === 'development' ? console.log : false,
     pool: {
-        max: 10,
+        max: 25,
         min: 0,
-        acquire: 30000,
+        acquire: 45000,
         idle: 10000,
     },
     define: {

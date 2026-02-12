@@ -50,19 +50,25 @@ class AuthService {
             if (country) {
                 updates.country = country;
             }
-            await user.update(updates);
-        }
 
-        // Grant Valentine's gift if applicable
-        await this.checkValentineGift(user);
+            // Check Valentine's gift before updating to consolidate saves
+            const giftGranted = await this.checkValentineGift(user, updates);
+
+            await user.update(updates);
+        } else {
+            // New user - also check for gift (though usually gift logic handles existing users, 
+            // a new user joining on Feb 14 should also get it)
+            await this.checkValentineGift(user);
+        }
 
         return user;
     }
 
     /**
      * Grant 1 day of premium if it's Valentine's Day
+     * Can optionally pass an 'updates' object to consolidate the update call
      */
-    async checkValentineGift(user) {
+    async checkValentineGift(user, updates = null) {
         const now = new Date();
         // February is month 1 (0-indexed)
         const isValentine = now.getUTCMonth() === 1 && now.getUTCDate() === 14;
@@ -73,11 +79,17 @@ class AuthService {
 
             const newPremiumUntil = new Date(baseDate.getTime() + 24 * 60 * 60 * 1000);
 
-            await user.update({
+            const giftData = {
                 premiumUntil: newPremiumUntil,
                 isPremium: true,
                 receivedValentineGift: true
-            });
+            };
+
+            if (updates) {
+                Object.assign(updates, giftData);
+            } else {
+                await user.update(giftData);
+            }
             return true;
         }
         return false;

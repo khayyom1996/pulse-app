@@ -73,7 +73,7 @@ export default function LoveButton({ onLoveSent, disabled }) {
                 {cooldown > 0 ? (
                     <span className="love-button-text">{t('love.cooldown', { seconds: cooldown })}</span>
                 ) : (
-                    <span className="love-button-text">{t('home.send_love')}</span>
+                    <span className="love-button-text"></span>
                 )}
             </motion.button>
 
