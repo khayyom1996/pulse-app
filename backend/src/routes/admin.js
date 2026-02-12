@@ -25,31 +25,31 @@ router.get('/stats', adminAuth, async (req, res) => {
         const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
         const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-        // User stats
-        const totalUsers = await User.count();
-        const usersToday = await User.count({ where: { createdAt: { [Op.gte]: today } } });
-        const usersWeek = await User.count({ where: { createdAt: { [Op.gte]: weekAgo } } });
-        const usersMonth = await User.count({ where: { createdAt: { [Op.gte]: monthAgo } } });
-
-        // Pair stats
-        const totalPairs = await Pair.count({ where: { user2Id: { [Op.not]: null } } });
-        const activePairs = await Pair.count({ where: { isActive: true, user2Id: { [Op.not]: null } } });
-        const pendingPairs = await Pair.count({ where: { user2Id: null, isActive: true } });
-
-        // Activity stats
-        const totalLoveClicks = await LoveClick.count();
-        const loveTodayCount = await LoveClick.count({ where: { createdAt: { [Op.gte]: today } } });
-        const loveWeekCount = await LoveClick.count({ where: { createdAt: { [Op.gte]: weekAgo } } });
-
-        // Engagement stats
-        const totalDates = await ImportantDate.count();
-        const totalMatches = await WishMatch.count();
-        const totalSwipes = await WishSwipe.count();
-
-        // Streak stats
-        const avgStreak = await TreeStreak.findOne({
-            attributes: [[sequelize.fn('AVG', sequelize.col('current_streak')), 'avgStreak']],
-        });
+        // Efficiently fetch all stats in parallel
+        const [
+            totalUsers, usersToday, usersWeek, usersMonth,
+            totalPairs, activePairs, pendingPairs,
+            totalLoveClicks, loveTodayCount, loveWeekCount,
+            totalDates, totalMatches, totalSwipes,
+            avgStreak
+        ] = await Promise.all([
+            User.count(),
+            User.count({ where: { createdAt: { [Op.gte]: today } } }),
+            User.count({ where: { createdAt: { [Op.gte]: weekAgo } } }),
+            User.count({ where: { createdAt: { [Op.gte]: monthAgo } } }),
+            Pair.count({ where: { user2Id: { [Op.not]: null } } }),
+            Pair.count({ where: { isActive: true, user2Id: { [Op.not]: null } } }),
+            Pair.count({ where: { user2Id: null, isActive: true } }),
+            LoveClick.count(),
+            LoveClick.count({ where: { createdAt: { [Op.gte]: today } } }),
+            LoveClick.count({ where: { createdAt: { [Op.gte]: weekAgo } } }),
+            ImportantDate.count(),
+            WishMatch.count(),
+            WishSwipe.count(),
+            TreeStreak.findOne({
+                attributes: [[sequelize.fn('AVG', sequelize.col('current_streak')), 'avgStreak']],
+            })
+        ]);
 
         res.json({
             users: {
@@ -120,8 +120,7 @@ router.get('/users', adminAuth, async (req, res) => {
 router.get('/chart/users', adminAuth, async (req, res) => {
     try {
         const days = parseInt(req.query.days) || 30;
-        const data = [];
-
+        const promises = [];
         for (let i = days - 1; i >= 0; i--) {
             const date = new Date();
             date.setDate(date.getDate() - i);
@@ -130,20 +129,22 @@ router.get('/chart/users', adminAuth, async (req, res) => {
             const nextDate = new Date(date);
             nextDate.setDate(nextDate.getDate() + 1);
 
-            const count = await User.count({
-                where: {
-                    createdAt: {
-                        [Op.gte]: date,
-                        [Op.lt]: nextDate,
+            promises.push(
+                User.count({
+                    where: {
+                        createdAt: {
+                            [Op.gte]: date,
+                            [Op.lt]: nextDate,
+                        },
                     },
-                },
-            });
-
-            data.push({
-                date: date.toISOString().split('T')[0],
-                count,
-            });
+                }).then(count => ({
+                    date: date.toISOString().split('T')[0],
+                    count,
+                }))
+            );
         }
+
+        const data = await Promise.all(promises);
 
         res.json({ data });
     } catch (error) {
@@ -159,8 +160,7 @@ router.get('/chart/users', adminAuth, async (req, res) => {
 router.get('/chart/activity', adminAuth, async (req, res) => {
     try {
         const days = parseInt(req.query.days) || 14;
-        const data = [];
-
+        const promises = [];
         for (let i = days - 1; i >= 0; i--) {
             const date = new Date();
             date.setDate(date.getDate() - i);
@@ -169,30 +169,30 @@ router.get('/chart/activity', adminAuth, async (req, res) => {
             const nextDate = new Date(date);
             nextDate.setDate(nextDate.getDate() + 1);
 
-            const loveClicks = await LoveClick.count({
-                where: {
-                    createdAt: {
-                        [Op.gte]: date,
-                        [Op.lt]: nextDate,
-                    },
-                },
-            });
-
-            const swipes = await WishSwipe.count({
-                where: {
-                    createdAt: {
-                        [Op.gte]: date,
-                        [Op.lt]: nextDate,
-                    },
-                },
-            });
-
-            data.push({
-                date: date.toISOString().split('T')[0],
-                loveClicks,
-                swipes,
-            });
+            promises.push(
+                (async () => {
+                    const [loveClicks, swipes] = await Promise.all([
+                        LoveClick.count({
+                            where: {
+                                createdAt: { [Op.gte]: date, [Op.lt]: nextDate },
+                            },
+                        }),
+                        WishSwipe.count({
+                            where: {
+                                createdAt: { [Op.gte]: date, [Op.lt]: nextDate },
+                            },
+                        })
+                    ]);
+                    return {
+                        date: date.toISOString().split('T')[0],
+                        loveClicks,
+                        swipes,
+                    };
+                })()
+            );
         }
+
+        const data = await Promise.all(promises);
 
         res.json({ data });
     } catch (error) {
