@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const aiService = require('../services/aiService');
 const authService = require('../services/authService');
+const { AiChat, AppSetting } = require('../models');
+const { Op } = require('sequelize');
 
 /**
  * GET /api/ai/history
@@ -18,7 +20,26 @@ router.get('/history', async (req, res) => {
         if (!pair) return res.status(404).json({ error: 'Pair not found' });
 
         const history = await aiService.getChatHistory(pair.id);
-        res.json({ history });
+
+        // Get remaining messages for today
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayMessages = await AiChat.count({
+            where: {
+                userId: user.id,
+                role: 'user',
+                createdAt: { [Op.gte]: todayStart },
+            },
+        });
+
+        const limitSetting = await AppSetting.findByPk('ai_daily_limit');
+        const dailyLimit = limitSetting ? parseInt(limitSetting.value) : 3;
+
+        res.json({
+            history,
+            remaining: Math.max(dailyLimit - todayMessages, 0),
+            dailyLimit,
+        });
     } catch (error) {
         console.error('AI History Error:', error);
         res.status(500).json({ error: 'Failed to fetch history' });
@@ -40,7 +61,38 @@ router.post('/chat', async (req, res) => {
         if (!telegramUser) return res.status(401).json({ error: 'Unauthorized' });
 
         const user = await authService.getOrCreateUser(telegramUser);
-        if (!user.isPremium) return res.status(403).json({ error: 'Premium required' });
+
+        // Check if AI is globally enabled
+        const aiEnabledSetting = await AppSetting.findByPk('ai_enabled');
+        const aiEnabled = aiEnabledSetting ? aiEnabledSetting.value === 'true' : false;
+
+        // If AI not globally enabled, require premium
+        if (!aiEnabled && !user.isPremium) {
+            return res.status(403).json({ error: 'Premium required' });
+        }
+
+        // Check daily message limit
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayMessages = await AiChat.count({
+            where: {
+                userId: user.id,
+                role: 'user',
+                createdAt: { [Op.gte]: todayStart },
+            },
+        });
+
+        const limitSetting = await AppSetting.findByPk('ai_daily_limit');
+        const dailyLimit = limitSetting ? parseInt(limitSetting.value) : 3;
+
+        // Premium users get unlimited, free users get daily limit when AI is enabled
+        if (!user.isPremium && todayMessages >= dailyLimit) {
+            return res.status(429).json({
+                error: 'Daily limit reached',
+                remaining: 0,
+                dailyLimit,
+            });
+        }
 
         const pair = await authService.getUserPair(user.id);
         if (!pair) return res.status(404).json({ error: 'Pair not found' });
@@ -52,7 +104,12 @@ router.post('/chat', async (req, res) => {
             user.languageCode
         );
 
-        res.json({ response });
+        // Calculate remaining
+        const remaining = user.isPremium
+            ? 999
+            : Math.max(dailyLimit - todayMessages - 1, 0);
+
+        res.json({ response, remaining, dailyLimit });
     } catch (error) {
         console.error('AI Chat Error:', error);
         res.status(500).json({ error: 'Failed to get AI response' });

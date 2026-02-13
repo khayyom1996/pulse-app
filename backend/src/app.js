@@ -65,6 +65,7 @@ app.use(cors({
 }));
 app.use(morgan(config.nodeEnv === 'production' ? 'combined' : 'dev'));
 app.use(express.json());
+app.set('trust proxy', 1); // Enable proxy trust for Railway/Cloudflare
 
 // Rate limiting
 const limiter = rateLimit({
@@ -139,67 +140,134 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Start server
-async function start() {
-    let retries = 5;
+// Health check and root routes
+app.get('/', (req, res) => {
+    res.json({ status: 'ok', message: 'Pulse API is running' });
+});
+
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0',
+        database: sequelize.options.host,
+    });
+});
+
+// Start server immediately
+const PORT = config.port || 8080;
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🌍 Environment: ${config.nodeEnv}`);
+
+    // Initialize services in background
+    startServices();
+});
+
+async function startServices() {
+    // 1. Connect to Redis (optional)
+    try {
+        if (redis) {
+            console.log('📡 Connecting to Redis...');
+            // ioredis usually connects automatically unless lazyConnect: true
+            // We can trigger a ping to verify
+            await redis.ping();
+            console.log('✅ Redis connected');
+        }
+    } catch (error) {
+        console.error('❌ Redis initialization failed:', error.message);
+    }
+
+    // 2. Connect to database
+    let retries = 10;
+    let currentHost = sequelize.options.host;
     while (retries > 0) {
         try {
-            // Connect to database
-            console.log(`📡 Attempting to connect to database... (Retries left: ${retries})`);
-            await sequelize.authenticate();
+            const dbPort = sequelize.options.port;
+            console.log(`📡 Attempting to connect to database at ${currentHost}:${dbPort}... (Retries left: ${retries})`);
+
+            // Set a manual timeout for authentication to avoid indefinite hang
+            const authPromise = sequelize.authenticate();
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Manual connection timeout')), 30000)
+            );
+
+            await Promise.race([authPromise, timeoutPromise]);
             console.log('✅ Database connected');
-            break; // Success!
+
+            // Sync models
+            await sequelize.sync({ alter: config.nodeEnv === 'development' });
+            console.log('✅ Models synced');
+
+            // Auto-seed if no wish cards exist
+            const { WishCard } = require('./models');
+            const count = await WishCard.count();
+            if (count === 0) {
+                console.log('📦 No wish cards found, seeding...');
+                await seedWishCards();
+            }
+
+            break; // Success
         } catch (error) {
             retries -= 1;
-            console.error(`❌ Connection failed. Retrying in 5s...`, error.message);
+            console.error(`❌ Database connection failed. Host: ${sequelize.options.host}`);
+            console.error(`❌ Error Type: ${error.name}`);
+            console.error(`❌ Error Message: ${error.message}`);
+            if (error.original) {
+                console.error(`❌ Original Error:`, error.original.message || error.original);
+            }
+            if (error.parent) {
+                console.error(`❌ Parent Error:`, error.parent.message || error.parent);
+            }
+
             if (retries === 0) {
-                console.error('❌ Max retries reached. Exiting.');
-                process.exit(1);
+                console.error('❌ Max retries reached. Database features will be unavailable.');
+            } else {
+                // Try simple host fallback if internal domain fails
+                if (currentHost.includes('railway.internal')) {
+                    console.log('💡 Trying host fallback to "postgres"...');
+                    currentHost = 'postgres';
+                    sequelize.options.host = 'postgres';
+                }
+                console.log(`📡 Retrying in 5s...`);
             }
             await new Promise(res => setTimeout(res, 5000));
         }
     }
 
+    // 2. Connect to Redis (optional)
     try {
-        // Sync models
-        await sequelize.sync({ alter: true });
-        console.log('✅ Models synced');
-
-        // Auto-seed if no wish cards exist
-        const { WishCard } = require('./models');
-        const count = await WishCard.count();
-        if (count === 0) {
-            console.log('📦 No wish cards found, seeding...');
-            await seedWishCards();
-        }
-
-        // Connect to Redis
         if (redis) {
-            await redis.connect();
+            // Check if already connected or if we need to call connect
+            // ioredis usually connects automatically unless lazyConnect: true
+            console.log('📡 Connecting to Redis...');
         }
+    } catch (error) {
+        console.error('❌ Redis initialization failed:', error.message);
+    }
 
-        // Start reminder job
-        const { startReminderJob } = require('./jobs/reminderJob');
-        startReminderJob();
-
-        // Start Express server
-        app.listen(config.port, () => {
-            console.log(`🚀 Server running on port ${config.port}`);
-        });
-
+    // 3. Initialize Bot
+    try {
         // Set webhook in production
         if (config.nodeEnv === 'production' && config.apiUrl) {
             const webhookUrl = `${config.apiUrl.replace(/\/$/, '')}/webhook`;
             await bot.telegram.setWebhook(webhookUrl);
             console.log(`✅ Telegram webhook set: ${webhookUrl}`);
         } else {
-            // Use polling in development
             bot.launch();
             console.log('✅ Telegram bot started (polling)');
         }
     } catch (error) {
-        console.error('❌ Failed to start server:', error);
-        process.exit(1);
+        console.error('❌ Bot initialization failed:', error.message);
+    }
+
+    // 4. Start reminder job
+    try {
+        const { startReminderJob } = require('./jobs/reminderJob');
+        startReminderJob();
+        console.log('✅ Reminder job started');
+    } catch (error) {
+        console.error('❌ Reminder job failed to start:', error.message);
     }
 }
 
@@ -212,5 +280,3 @@ process.once('SIGTERM', () => {
     bot.stop('SIGTERM');
     process.exit(0);
 });
-
-start();

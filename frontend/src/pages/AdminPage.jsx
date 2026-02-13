@@ -18,6 +18,18 @@ export default function AdminPage() {
     const [promoCodes, setPromoCodes] = useState([]);
     const [newPromo, setNewPromo] = useState({ code: '', type: 'premium', value: 30, usageLimit: '' });
 
+    // App Settings state
+    const [appSettings, setAppSettings] = useState({
+        ai_enabled: 'false',
+        ai_daily_limit: '3',
+        pricing_monthly: '299',
+        pricing_6month: '999',
+        pricing_yearly: '1499',
+        pricing_discount: '0',
+    });
+    const [settingsLoading, setSettingsLoading] = useState(false);
+    const [settingsSaved, setSettingsSaved] = useState(false);
+
     // Broadcast state
     const [broadcastMessage, setBroadcastMessage] = useState('');
     const [targetGroup, setTargetGroup] = useState('all');
@@ -25,6 +37,18 @@ export default function AdminPage() {
     const [sending, setSending] = useState(false);
 
     const headers = { 'X-Admin-Key': adminKey };
+
+    const loadSettings = async () => {
+        try {
+            const res = await fetch(`${API_URL}/api/admin/settings`, { headers });
+            if (res.ok) {
+                const data = await res.json();
+                setAppSettings(data);
+            }
+        } catch (e) {
+            console.error('Load settings error:', e);
+        }
+    };
 
     const authenticate = async () => {
         setLoading(true);
@@ -239,7 +263,10 @@ export default function AdminPage() {
                         <button
                             key={item.id}
                             className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
-                            onClick={() => setActiveTab(item.id)}
+                            onClick={() => {
+                                setActiveTab(item.id);
+                                if (item.id === 'settings') loadSettings();
+                            }}
                         >
                             <span className="nav-icon">{item.icon}</span>
                             <span className="nav-label">{item.label}</span>
@@ -515,7 +542,126 @@ export default function AdminPage() {
                     {activeTab === 'settings' && (
                         <div className="panel settings-panel">
                             <h3>⚙️ Настройки</h3>
+
+                            {/* AI Psychologist Section */}
                             <div className="settings-section">
+                                <h4>🧠 AI Психолог</h4>
+                                <div className="setting-row">
+                                    <label>Доступ для всех пользователей</label>
+                                    <label className="toggle-switch">
+                                        <input
+                                            type="checkbox"
+                                            checked={appSettings.ai_enabled === 'true'}
+                                            onChange={(e) => setAppSettings(prev => ({
+                                                ...prev,
+                                                ai_enabled: e.target.checked ? 'true' : 'false',
+                                            }))}
+                                        />
+                                        <span className="toggle-slider" />
+                                    </label>
+                                </div>
+                                <div className="setting-row">
+                                    <label>Дневной лимит сообщений</label>
+                                    <input
+                                        type="number"
+                                        className="setting-input"
+                                        value={appSettings.ai_daily_limit}
+                                        onChange={(e) => setAppSettings(prev => ({
+                                            ...prev,
+                                            ai_daily_limit: e.target.value,
+                                        }))}
+                                        min="1"
+                                        max="100"
+                                    />
+                                </div>
+                                <p className="setting-hint">Премиум-пользователи имеют безлимитный доступ</p>
+                            </div>
+
+                            {/* Pricing Section */}
+                            <div className="settings-section">
+                                <h4>💰 Цены подписки (Stars)</h4>
+                                <div className="setting-row">
+                                    <label>1 месяц</label>
+                                    <input
+                                        type="number"
+                                        className="setting-input"
+                                        value={appSettings.pricing_monthly}
+                                        onChange={(e) => setAppSettings(prev => ({
+                                            ...prev,
+                                            pricing_monthly: e.target.value,
+                                        }))}
+                                    />
+                                </div>
+                                <div className="setting-row">
+                                    <label>6 месяцев</label>
+                                    <input
+                                        type="number"
+                                        className="setting-input"
+                                        value={appSettings.pricing_6month}
+                                        onChange={(e) => setAppSettings(prev => ({
+                                            ...prev,
+                                            pricing_6month: e.target.value,
+                                        }))}
+                                    />
+                                </div>
+                                <div className="setting-row">
+                                    <label>1 год</label>
+                                    <input
+                                        type="number"
+                                        className="setting-input"
+                                        value={appSettings.pricing_yearly}
+                                        onChange={(e) => setAppSettings(prev => ({
+                                            ...prev,
+                                            pricing_yearly: e.target.value,
+                                        }))}
+                                    />
+                                </div>
+                                <div className="setting-row">
+                                    <label>Скидка (%)</label>
+                                    <input
+                                        type="number"
+                                        className="setting-input"
+                                        value={appSettings.pricing_discount}
+                                        onChange={(e) => setAppSettings(prev => ({
+                                            ...prev,
+                                            pricing_discount: e.target.value,
+                                        }))}
+                                        min="0"
+                                        max="100"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Save Settings Button */}
+                            <button
+                                className="primary-btn"
+                                disabled={settingsLoading}
+                                onClick={async () => {
+                                    setSettingsLoading(true);
+                                    setSettingsSaved(false);
+                                    try {
+                                        const res = await fetch(`${API_URL}/api/admin/settings`, {
+                                            method: 'PUT',
+                                            headers: { ...headers, 'Content-Type': 'application/json' },
+                                            body: JSON.stringify(appSettings),
+                                        });
+                                        if (res.ok) {
+                                            const data = await res.json();
+                                            setAppSettings(data);
+                                            setSettingsSaved(true);
+                                            setTimeout(() => setSettingsSaved(false), 3000);
+                                        }
+                                    } catch (err) {
+                                        console.error('Save settings error:', err);
+                                    }
+                                    setSettingsLoading(false);
+                                }}
+                            >
+                                {settingsLoading ? '⏳ Сохранение...' : settingsSaved ? '✅ Сохранено!' : '💾 Сохранить настройки'}
+                            </button>
+
+                            {/* Danger Zone */}
+                            <div className="settings-section" style={{ marginTop: '32px' }}>
                                 <h4>🗑️ Опасная зона</h4>
                                 <p>Удаление всех данных из базы. Это действие необратимо!</p>
                                 <button className="danger-btn" onClick={clearAllData}>

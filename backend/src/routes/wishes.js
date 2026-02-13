@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const wishService = require('../services/wishService');
 const authService = require('../services/authService');
+const { Wish } = require('../models');
 
 /**
  * GET /api/wishes/cards
@@ -132,6 +133,132 @@ router.get('/stats', async (req, res) => {
     } catch (error) {
         console.error('Get stats error:', error);
         res.status(500).json({ error: 'Failed to get stats' });
+    }
+});
+
+// =============================================
+// WISH LIST API (new list-based wishes)
+// =============================================
+
+/**
+ * GET /api/wishes/list
+ * Get all wishes for the pair
+ */
+router.get('/list', async (req, res) => {
+    try {
+        const userId = req.userId;
+        const pair = await authService.getUserPair(userId);
+        if (!pair) {
+            return res.status(400).json({ error: 'Not paired' });
+        }
+
+        const wishes = await Wish.findAll({
+            where: { pairId: pair.id },
+            order: [['isDone', 'ASC'], ['createdAt', 'DESC']],
+        });
+
+        res.json({ wishes, userId });
+    } catch (error) {
+        console.error('Get wishes error:', error);
+        res.status(500).json({ error: 'Failed to get wishes' });
+    }
+});
+
+/**
+ * POST /api/wishes
+ * Create a new wish
+ */
+router.post('/', async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { text, emoji } = req.body;
+
+        if (!text || !text.trim()) {
+            return res.status(400).json({ error: 'Text is required' });
+        }
+
+        const pair = await authService.getUserPair(userId);
+        if (!pair) {
+            return res.status(400).json({ error: 'Not paired' });
+        }
+
+        const wish = await Wish.create({
+            pairId: pair.id,
+            userId,
+            text: text.trim(),
+            emoji: emoji || '💫',
+        });
+
+        res.json({ wish });
+    } catch (error) {
+        console.error('Create wish error:', error);
+        res.status(500).json({ error: 'Failed to create wish' });
+    }
+});
+
+/**
+ * PUT /api/wishes/:id/done
+ * Toggle wish done status
+ */
+router.put('/:id/done', async (req, res) => {
+    try {
+        const userId = req.userId;
+        const wishId = req.params.id;
+
+        const pair = await authService.getUserPair(userId);
+        if (!pair) {
+            return res.status(400).json({ error: 'Not paired' });
+        }
+
+        const wish = await Wish.findOne({
+            where: { id: wishId, pairId: pair.id },
+        });
+
+        if (!wish) {
+            return res.status(404).json({ error: 'Wish not found' });
+        }
+
+        const isDone = !wish.isDone;
+        await wish.update({
+            isDone,
+            doneAt: isDone ? new Date() : null,
+            doneByUserId: isDone ? userId : null,
+        });
+
+        res.json({ wish });
+    } catch (error) {
+        console.error('Toggle wish error:', error);
+        res.status(500).json({ error: 'Failed to toggle wish' });
+    }
+});
+
+/**
+ * DELETE /api/wishes/:id
+ * Delete own wish
+ */
+router.delete('/:id', async (req, res) => {
+    try {
+        const userId = req.userId;
+        const wishId = req.params.id;
+
+        const pair = await authService.getUserPair(userId);
+        if (!pair) {
+            return res.status(400).json({ error: 'Not paired' });
+        }
+
+        const wish = await Wish.findOne({
+            where: { id: wishId, pairId: pair.id, userId },
+        });
+
+        if (!wish) {
+            return res.status(404).json({ error: 'Wish not found or not yours' });
+        }
+
+        await wish.destroy();
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Delete wish error:', error);
+        res.status(500).json({ error: 'Failed to delete wish' });
     }
 });
 

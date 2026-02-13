@@ -148,6 +148,30 @@ const api = {
         return this.post('/api/ai/chat', { message });
     },
 
+    // Wish List (new list-based)
+    getWishList() {
+        return this.request('/api/wishes/list');
+    },
+
+    createWish(data) {
+        return this.request('/api/wishes', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    },
+
+    toggleWishDone(id) {
+        return this.request(`/api/wishes/${id}/done`, {
+            method: 'PUT',
+        });
+    },
+
+    deleteWish(id) {
+        return this.request(`/api/wishes/${id}`, {
+            method: 'DELETE',
+        });
+    },
+
     // Payments & Premium
     getPremiumStatus() {
         return this.get('/api/payments/status');
@@ -155,6 +179,21 @@ const api = {
 
     createInvoice(tier) {
         return this.post('/api/payments/create-invoice', { tier });
+    },
+
+    // Admin Settings
+    getAdminSettings(adminKey) {
+        return fetch(`${this.baseUrl}/api/admin/settings`, {
+            headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+        }).then(r => r.json());
+    },
+
+    updateAdminSettings(adminKey, settings) {
+        return fetch(`${this.baseUrl}/api/admin/settings`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+            body: JSON.stringify(settings),
+        }).then(r => r.json());
     },
 };
 

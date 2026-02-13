@@ -3,18 +3,19 @@ const config = require('./index');
 
 const sequelize = new Sequelize(config.databaseUrl, {
     dialect: 'postgres',
-    logging: config.nodeEnv === 'development' ? console.log : false,
+    logging: (msg) => console.log(`[Sequelize] ${msg}`),
     dialectOptions: {
-        ssl: config.nodeEnv === 'production' ? {
+        ssl: (config.nodeEnv === 'production' && !config.databaseUrl.includes('railway.internal') && !config.databaseUrl.includes('postgres')) ? {
             require: true,
-            rejectUnauthorized: false // Railway internal DBs often need this
+            rejectUnauthorized: false
         } : false,
         keepAlive: true,
+        family: 4,
     },
     pool: {
-        max: 20, // Slightly reduced from 25 for safety
-        min: 2,
-        acquire: 60000, // Increased to 60s
+        max: 20,
+        min: 0,
+        acquire: 60000,
         idle: 10000,
     },
     define: {

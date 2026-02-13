@@ -1,8 +1,8 @@
 :root {
     /* Primary Colors */
-    --primary: #ff6b6b;
-    --primary-light: #ff8e8e;
-    --primary-dark: #e55555;
+    --primary: #ff5757;
+    --primary-light: #ff7a7a;
+    --primary-dark: #e04444;
 
     /* Secondary Colors */
     --secondary: #4ecdc4;
@@ -26,7 +26,7 @@
     --match-purple: #9b59b6;
 
     /* Gradients */
-    --gradient-love: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+    --gradient-love: linear-gradient(135deg, #ff5757 0%, #ff7a3d 100%);
     --gradient-calm: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --gradient-tree: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
 
@@ -34,7 +34,7 @@
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-    --shadow-glow: 0 0 40px rgba(255, 107, 107, 0.4);
+    --shadow-glow: 0 0 40px rgba(255, 87, 87, 0.4);
 
     /* Spacing */
     --spacing-xs: 4px;

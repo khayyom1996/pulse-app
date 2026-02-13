@@ -1,251 +1,217 @@
-import { useState, useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTelegram } from '../hooks/useTelegram';
+import { useTranslation } from 'react-i18next';
 import api from '../api/client';
 import './WishesPage.css';
 
+const EMOJI_OPTIONS = ['💫', '❤️', '🌟', '🎁', '🏖️', '🍽️', '🎬', '🎵', '💐', '🏠'];
+
 export default function WishesPage() {
     const { t } = useTranslation();
-    const { haptic } = useTelegram();
-    const [cards, setCards] = useState([]);
-    const [matches, setMatches] = useState([]);
+    const [wishes, setWishes] = useState([]);
+    const [currentUserId, setCurrentUserId] = useState(null);
+    const [newWishText, setNewWishText] = useState('');
+    const [selectedEmoji, setSelectedEmoji] = useState('💫');
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [showMatch, setShowMatch] = useState(null);
-    const [category, setCategory] = useState(null);
-    const [activeTab, setActiveTab] = useState('cards'); // 'cards' or 'matches'
-    const [swipeDirection, setSwipeDirection] = useState(null);
-    const cardRef = useRef(null);
+    const [submitting, setSubmitting] = useState(false);
 
-    const [user, setUser] = useState(null);
-
-    useEffect(() => {
-        loadData();
-    }, [category]);
-
-    const loadData = async () => {
+    const fetchWishes = useCallback(async () => {
         try {
-            const [cardsResult, matchesResult, userData] = await Promise.all([
-                api.getWishCards(category),
-                api.getMatches(),
-                api.getPremiumStatus()
-            ]);
-            setCards(cardsResult.cards || []);
-            setMatches(matchesResult.matches || []);
-            setUser(userData);
-        } catch (error) {
-            console.error('Failed to load wishes:', error);
+            const data = await api.getWishList();
+            setWishes(data.wishes || []);
+            setCurrentUserId(data.userId);
+        } catch (e) {
+            console.error('Failed to fetch wishes:', e);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
+    useEffect(() => {
+        fetchWishes();
+    }, [fetchWishes]);
 
-    const handleSwipe = async (cardId, liked) => {
-        haptic('selection');
-        setSwipeDirection(liked ? 'right' : 'left');
+    const handleAddWish = async (e) => {
+        e.preventDefault();
+        if (!newWishText.trim() || submitting) return;
 
-        // Remove card from deck
-        setTimeout(() => {
-            setCards(prev => prev.filter(c => c.id !== cardId));
-            setSwipeDirection(null);
-        }, 300);
-
+        setSubmitting(true);
         try {
-            const result = await api.swipeCard(cardId, liked);
-
-            if (result.isMatch) {
-                haptic('notification');
-                setShowMatch(result.match);
-                loadData(); // Refresh matches
+            const result = await api.createWish({ text: newWishText.trim(), emoji: selectedEmoji });
+            // Optimistic update: add new wish to state immediately
+            if (result.wish) {
+                setWishes(prev => [result.wish, ...prev]);
             }
-        } catch (error) {
-            console.error('Failed to swipe:', error);
+            setNewWishText('');
+            setSelectedEmoji('💫');
+            setShowEmojiPicker(false);
+            // Background sync to ensure consistency
+            fetchWishes();
+        } catch (err) {
+            console.error('Failed to create wish:', err);
+        } finally {
+            setSubmitting(false);
         }
     };
 
-    const currentCard = cards[0];
-
-    const getCardText = (card) => {
-        const lang = window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code || 'ru';
-        if (lang === 'tg' && card.textTg) return card.textTg;
-        if (lang === 'en' && card.textEn) return card.textEn;
-        return card.textRu;
+    const handleToggleDone = async (wishId) => {
+        try {
+            await api.toggleWishDone(wishId);
+            await fetchWishes();
+        } catch (err) {
+            console.error('Failed to toggle wish:', err);
+        }
     };
+
+    const handleDelete = async (wishId) => {
+        try {
+            await api.deleteWish(wishId);
+            await fetchWishes();
+        } catch (err) {
+            console.error('Failed to delete wish:', err);
+        }
+    };
+
+    const myWishes = wishes.filter(w => String(w.userId) === String(currentUserId));
+    const partnerWishes = wishes.filter(w => String(w.userId) !== String(currentUserId));
 
     if (loading) {
         return (
-            <div className="page loading-page">
-                <div className="loader">💜</div>
-                <p>{t('app.loading')}</p>
+            <div className="page wishes-page">
+                <div className="wishes-loading">
+                    <div className="spinner" />
+                </div>
             </div>
         );
     }
 
     return (
         <div className="page wishes-page">
-            <h1 className="page-title">{t('wishes.title')}</h1>
+            <h1 className="page-title">💫 {t('wishes.title', 'Желания')}</h1>
 
-            {/* Tabs */}
-            <div className="tabs">
-                <button
-                    className={`tab ${activeTab === 'cards' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('cards')}
-                >
-                    Карточки
-                </button>
-                <button
-                    className={`tab ${activeTab === 'matches' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('matches')}
-                >
-                    Совпадения ({matches.length})
-                </button>
-            </div>
-
-            {/* Category filter */}
-            {activeTab === 'cards' && (
-                <div className="category-filter">
+            {/* Add Wish Form */}
+            <form className="wish-form" onSubmit={handleAddWish}>
+                <div className="wish-input-row">
                     <button
-                        className={`filter-btn ${!category ? 'active' : ''}`}
-                        onClick={() => setCategory(null)}
+                        type="button"
+                        className="emoji-btn"
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                     >
-                        Все
+                        {selectedEmoji}
                     </button>
+                    <input
+                        type="text"
+                        className="wish-input"
+                        placeholder={t('wishes.add_placeholder', 'Добавить желание...')}
+                        value={newWishText}
+                        onChange={(e) => setNewWishText(e.target.value)}
+                        maxLength={500}
+                    />
                     <button
-                        className={`filter-btn ${category === 'romance' ? 'active' : ''}`}
-                        onClick={() => setCategory('romance')}
+                        type="submit"
+                        className="wish-submit-btn"
+                        disabled={!newWishText.trim() || submitting}
                     >
-                        💕 {t('wishes.categories.romance')}
-                    </button>
-                    <button
-                        className={`filter-btn ${category === 'adventure' ? 'active' : ''}`}
-                        onClick={() => setCategory('adventure')}
-                    >
-                        🌍 {t('wishes.categories.adventure')}
-                    </button>
-                    <button
-                        className={`filter-btn ${category === 'leisure' ? 'active' : ''}`}
-                        onClick={() => setCategory('leisure')}
-                    >
-                        🎬 {t('wishes.categories.leisure')}
+                        {submitting ? '...' : '+'}
                     </button>
                 </div>
-            )}
 
-            {/* Cards view */}
-            {activeTab === 'cards' && (
-                <div className="cards-container">
-                    <AnimatePresence>
-                        {currentCard ? (
-                            <motion.div
-                                key={currentCard.id}
-                                ref={cardRef}
-                                className={`wish-card ${swipeDirection ? `swipe-${swipeDirection}` : ''}`}
-                                initial={{ scale: 0.95, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{
-                                    x: swipeDirection === 'right' ? 300 : -300,
-                                    opacity: 0,
-                                    rotate: swipeDirection === 'right' ? 20 : -20,
-                                }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <span className="card-emoji">{currentCard.emoji || '💭'}</span>
-                                <p className="card-text">{getCardText(currentCard)}</p>
-                                <span className="card-category">
-                                    {t(`wishes.categories.${currentCard.category}`)}
-                                </span>
-                            </motion.div>
-                        ) : (
-                            <div className="no-cards">
-                                <span className="empty-emoji">✨</span>
-                                <p>{t('wishes.no_cards')}</p>
-                            </div>
-                        )}
-                    </AnimatePresence>
-
-                    {currentCard && (
-                        <div className="swipe-buttons">
-                            <button
-                                className="swipe-btn dislike"
-                                onClick={() => handleSwipe(currentCard.id, false)}
-                            >
-                                ✕
-                            </button>
-                            <button
-                                className="swipe-btn like"
-                                onClick={() => handleSwipe(currentCard.id, true)}
-                            >
-                                ❤️
-                            </button>
-                        </div>
-                    )}
-
-                    <p className="swipe-hint">{t('wishes.swipe_hint')}</p>
-                </div>
-            )}
-
-            {/* Matches view */}
-            {activeTab === 'matches' && (
-                <div className="matches-list">
-                    {matches.length === 0 ? (
-                        <div className="empty-state">
-                            <span className="empty-emoji">💫</span>
-                            <p>Пока нет совпадений</p>
-                        </div>
-                    ) : (
-                        <>
-                            {matches.slice(0, user?.isPremium ? undefined : 3).map((match) => (
-                                <motion.div
-                                    key={match.id}
-                                    className={`match-card ${match.isCompleted ? 'completed' : ''}`}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
+                <AnimatePresence>
+                    {showEmojiPicker && (
+                        <motion.div
+                            className="emoji-picker"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                        >
+                            {EMOJI_OPTIONS.map(emoji => (
+                                <button
+                                    key={emoji}
+                                    type="button"
+                                    className={`emoji-option ${selectedEmoji === emoji ? 'selected' : ''}`}
+                                    onClick={() => { setSelectedEmoji(emoji); setShowEmojiPicker(false); }}
                                 >
-                                    <span className="match-emoji">{match.WishCard?.emoji || '💜'}</span>
-                                    <div className="match-info">
-                                        <p className="match-text">{getCardText(match.WishCard)}</p>
-                                        <span className="match-date">
-                                            {new Date(match.matchedAt).toLocaleDateString()}
-                                        </span>
-                                    </div>
-                                    {match.isCompleted && <span className="completed-badge">✓</span>}
+                                    {emoji}
+                                </button>
+                            ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </form>
+
+            {/* Partner's Wishes */}
+            <section className="wish-section">
+                <h2 className="wish-section-title">
+                    💝 {t('wishes.partner_wishes', 'Желания партнёра')}
+                </h2>
+                {partnerWishes.length === 0 ? (
+                    <p className="wish-empty">{t('wishes.partner_empty', 'Партнёр ещё не добавил желания')}</p>
+                ) : (
+                    <div className="wish-list">
+                        <AnimatePresence>
+                            {partnerWishes.map(wish => (
+                                <motion.div
+                                    key={wish.id}
+                                    className={`wish-item ${wish.isDone ? 'done' : ''}`}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, x: -100 }}
+                                    layout
+                                >
+                                    <button
+                                        className="wish-check"
+                                        onClick={() => handleToggleDone(wish.id)}
+                                    >
+                                        {wish.isDone ? '✅' : '⬜'}
+                                    </button>
+                                    <span className="wish-emoji">{wish.emoji}</span>
+                                    <span className={`wish-text ${wish.isDone ? 'strikethrough' : ''}`}>
+                                        {wish.text}
+                                    </span>
                                 </motion.div>
                             ))}
-                            {!user?.isPremium && matches.length > 3 && (
-                                <Link to="/premium" className="premium-lock-mini">
-                                    <span>🔓 Посмотреть ещё {matches.length - 3} совпадений</span>
-                                </Link>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-
-            {/* Match popup */}
-            <AnimatePresence>
-                {showMatch && (
-                    <motion.div
-                        className="match-overlay"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setShowMatch(null)}
-                    >
-                        <motion.div
-                            className="match-popup"
-                            initial={{ scale: 0.5, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.5, opacity: 0 }}
-                        >
-                            <span className="match-hearts">💕</span>
-                            <h2 className="match-text">{t('wishes.match')}</h2>
-                            <p>{t('wishes.match_text')}</p>
-                        </motion.div>
-                    </motion.div>
+                        </AnimatePresence>
+                    </div>
                 )}
-            </AnimatePresence>
+            </section>
+
+            {/* My Wishes */}
+            <section className="wish-section">
+                <h2 className="wish-section-title">
+                    ✨ {t('wishes.my_wishes', 'Мои желания')}
+                </h2>
+                {myWishes.length === 0 ? (
+                    <p className="wish-empty">{t('wishes.my_empty', 'У вас пока нет желаний')}</p>
+                ) : (
+                    <div className="wish-list">
+                        <AnimatePresence>
+                            {myWishes.map(wish => (
+                                <motion.div
+                                    key={wish.id}
+                                    className={`wish-item mine ${wish.isDone ? 'done' : ''}`}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, x: -100 }}
+                                    layout
+                                >
+                                    <span className="wish-emoji">{wish.emoji}</span>
+                                    <span className={`wish-text ${wish.isDone ? 'strikethrough' : ''}`}>
+                                        {wish.text}
+                                    </span>
+                                    {wish.isDone && <span className="wish-done-badge">✅</span>}
+                                    <button
+                                        className="wish-delete"
+                                        onClick={() => handleDelete(wish.id)}
+                                    >
+                                        🗑️
+                                    </button>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
+                )}
+            </section>
         </div>
     );
 }

@@ -3,10 +3,19 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import LoveButton from '../components/LoveButton';
 import TreeStreak from '../components/TreeStreak';
-import ValentineCountdown from '../components/ValentineCountdown';
 import { useTelegram } from '../hooks/useTelegram';
 import api from '../api/client';
 import './HomePage.css';
+
+// Creative invitation texts
+const INVITE_TEXTS = [
+    'Присоединяйся ко мне в Pulse! Будем вместе выращивать наше дерево любви и исполнять желания ✨💕',
+    'Хочу быть ближе к тебе 💕 Установи Pulse — будем отправлять друг другу любовь каждый день ❤️',
+    'У меня для тебя кое-что особенное 🌹 Давай вместе выращивать наше дерево любви в Pulse! 🌳💕',
+    'Скучаю 💭 Нашла(ёл) приложение для нас двоих — Pulse! Там можно загадывать желания и отправлять любовь ✨',
+    'Наша любовь заслуживает своё дерево 🌳❤️ Присоединяйся ко мне в Pulse — вырастим его вместе!',
+    'Psst... у меня секрет 🤫 Я уже в Pulse — жду тебя! Будем отмечать наши даты и исполнять мечты 💫',
+];
 
 export default function HomePage() {
     const { t } = useTranslation();
@@ -82,7 +91,9 @@ export default function HomePage() {
     const copyInviteLink = () => {
         const botUsername = 'pulse_relationship_bot';
         const link = `https://t.me/${botUsername}?start=invite_${pair.inviteCode}`;
-        navigator.clipboard.writeText(link);
+        const inviteText = INVITE_TEXTS[Math.floor(Math.random() * INVITE_TEXTS.length)];
+        const fullText = `${inviteText}\n\n${link}`;
+        navigator.clipboard.writeText(fullText);
         window.Telegram?.WebApp?.showAlert(t('pair.link_copied') + " ✨💕");
     };
 
@@ -170,9 +181,6 @@ export default function HomePage() {
                         <span className="today-label">{t('home.today_loves')}</span>
                     </div>
                 </div>
-
-                {/* Valentine's Day Special */}
-                <ValentineCountdown />
 
                 {/* Love Button */}
                 <LoveButton onLoveSent={handleLoveSent} disabled={!pair.isComplete} />

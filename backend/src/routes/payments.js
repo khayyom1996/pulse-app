@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const paymentService = require('../services/paymentService');
 const authService = require('../services/authService');
+const { AppSetting } = require('../models');
 
 /**
  * POST /api/payments/create-invoice
@@ -29,7 +30,7 @@ router.post('/create-invoice', async (req, res) => {
 
 /**
  * GET /api/payments/status
- * Check user premium status
+ * Check user premium status + app settings (pricing, AI toggle)
  */
 router.get('/status', async (req, res) => {
     try {
@@ -39,10 +40,21 @@ router.get('/status', async (req, res) => {
 
         const user = await authService.getOrCreateUser(telegramUser);
 
+        // Fetch app settings for pricing and AI
+        const settings = await AppSetting.findAll();
+        const settingsMap = {};
+        settings.forEach(s => { settingsMap[s.key] = s.value; });
+
         res.json({
             isPremium: user.isPremium,
             premiumUntil: user.premiumUntil,
-            discount: user.discount || 0,
+            discount: parseInt(settingsMap.pricing_discount || '0') || user.discount || 0,
+            pricing: {
+                monthly: parseInt(settingsMap.pricing_monthly || '299'),
+                six_months: parseInt(settingsMap.pricing_6month || '999'),
+                yearly: parseInt(settingsMap.pricing_yearly || '1499'),
+            },
+            aiEnabled: (settingsMap.ai_enabled || 'false') === 'true',
         });
     } catch (error) {
         console.error('Payment Status Error:', error);

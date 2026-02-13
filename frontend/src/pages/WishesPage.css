@@ -1,267 +1,223 @@
 .wishes-page {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
+    padding-bottom: 100px;
 }
 
-/* Tabs */
-.tabs {
+.wishes-loading {
     display: flex;
-    gap: var(--spacing-sm);
+    justify-content: center;
+    padding: 60px 0;
+}
+
+/* Add Wish Form */
+.wish-form {
     background: var(--bg-card);
-    padding: var(--spacing-xs);
-    border-radius: var(--radius-md);
-}
-
-.tab {
-    flex: 1;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: none;
-    background: transparent;
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.tab.active {
-    background: var(--primary);
-    color: white;
-}
-
-/* Category filter */
-.category-filter {
-    display: flex;
-    gap: var(--spacing-sm);
-    overflow-x: auto;
-    padding-bottom: var(--spacing-sm);
-}
-
-.filter-btn {
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: none;
-    background: var(--bg-card);
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s;
-}
-
-.filter-btn.active {
-    background: var(--bg-card-hover);
-    color: var(--text-primary);
-}
-
-/* Cards container */
-.cards-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-lg);
-    min-height: 400px;
-}
-
-.wish-card {
-    width: 100%;
-    max-width: 320px;
-    aspect-ratio: 3/4;
-    background: var(--gradient-calm);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.wish-input-row {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: var(--spacing-lg);
-    text-align: center;
-    box-shadow: var(--shadow-lg);
+    gap: 8px;
 }
 
-.wish-card.swipe-right {
-    border: 3px solid var(--tree-green);
-}
-
-.wish-card.swipe-left {
-    border: 3px solid var(--primary);
-}
-
-.card-emoji {
-    font-size: 64px;
-}
-
-.card-text {
-    font-size: var(--font-size-lg);
-    font-weight: 500;
-    line-height: 1.4;
-}
-
-.card-category {
-    font-size: var(--font-size-sm);
-    color: rgba(255, 255, 255, 0.7);
-    padding: var(--spacing-xs) var(--spacing-md);
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-full);
-}
-
-.no-cards {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 300px;
-    color: var(--text-secondary);
-}
-
-/* Swipe buttons */
-.swipe-buttons {
-    display: flex;
-    gap: var(--spacing-xl);
-}
-
-.swipe-btn {
-    width: 64px;
-    height: 64px;
-    border-radius: var(--radius-full);
-    border: none;
-    font-size: 24px;
+.emoji-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 18px;
     cursor: pointer;
-    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
 }
 
-.swipe-btn.dislike {
-    background: var(--bg-card);
+.emoji-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.wish-input {
+    flex: 1;
+    min-width: 0;
+    height: 38px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    padding: 0 12px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.wish-input:focus {
+    border-color: var(--primary);
+}
+
+.wish-input::placeholder {
     color: var(--text-muted);
 }
 
-.swipe-btn.like {
-    background: var(--gradient-love);
+.wish-submit-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-md);
+    background: var(--primary);
     color: white;
-    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    border: none;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.2s, transform 0.1s;
 }
 
-.swipe-btn:active {
+.wish-submit-btn:hover {
+    opacity: 0.9;
+}
+
+.wish-submit-btn:active {
     transform: scale(0.95);
 }
 
-.swipe-hint {
-    color: var(--text-muted);
-    font-size: var(--font-size-sm);
+.wish-submit-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
-/* Matches list */
-.matches-list {
+/* Emoji Picker */
+.emoji-picker {
     display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    padding-top: var(--spacing-md);
+    overflow: hidden;
 }
 
-.match-card {
+.emoji-option {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid transparent;
+    font-size: 18px;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.emoji-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.emoji-option.selected {
+    border-color: var(--primary);
+    background: rgba(255, 87, 87, 0.15);
+}
+
+/* Wish Sections */
+.wish-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.wish-section-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.wish-empty {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-lg);
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    opacity: 0.7;
+}
+
+/* Wish List */
+.wish-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.wish-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
     padding: var(--spacing-md);
     background: var(--bg-card);
     border-radius: var(--radius-md);
-}
-
-.match-card.completed {
-    opacity: 0.6;
-}
-
-.match-emoji {
-    font-size: 32px;
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-secondary);
-    border-radius: var(--radius-md);
-}
-
-.match-info {
-    flex: 1;
-}
-
-.match-text {
-    font-size: var(--font-size-sm);
-    margin-bottom: 4px;
-}
-
-.match-date {
-    font-size: var(--font-size-xs);
-    color: var(--text-secondary);
-}
-
-.completed-badge {
-    width: 24px;
-    height: 24px;
-    background: var(--tree-green);
-    color: white;
-    border-radius: var(--radius-full);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-}
-
-/* Match popup */
-.match-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.match-popup {
-    text-align: center;
-    padding: var(--spacing-xl);
-}
-
-.match-hearts {
-    font-size: 80px;
-    display: block;
-    margin-bottom: var(--spacing-lg);
-    animation: pulse 1s ease-in-out infinite;
-}
-
-.match-popup h2 {
-    font-size: var(--font-size-2xl);
-    background: var(--gradient-love);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: var(--spacing-sm);
-}
-
-.match-popup p {
-    color: var(--text-secondary);
-}
-
-.premium-lock-mini {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--gradient-love);
-    padding: var(--spacing-md);
-    border-radius: var(--radius-md);
-    color: white;
-    text-decoration: none;
-    margin-top: var(--spacing-md);
-    font-weight: 600;
     box-shadow: var(--shadow-sm);
-    animation: fadeIn 0.3s ease-out;
+    transition: all 0.3s ease;
+    border-left: 3px solid var(--primary);
+}
+
+.wish-item.mine {
+    border-left-color: var(--secondary);
+}
+
+.wish-item.done {
+    opacity: 0.6;
+    border-left-color: var(--text-muted);
+}
+
+.wish-check {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    flex-shrink: 0;
+}
+
+.wish-emoji {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.wish-text {
+    flex: 1;
+    font-size: var(--font-size-md);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.wish-text.strikethrough {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.wish-done-badge {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.wish-delete {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+}
+
+.wish-delete:hover {
+    opacity: 1;
 }

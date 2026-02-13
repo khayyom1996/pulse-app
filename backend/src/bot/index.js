@@ -5,6 +5,20 @@ const { User, Pair, LoveClick } = require('../models');
 
 const bot = new Telegraf(config.telegramBotToken);
 
+// Creative invitation texts for sharing
+const INVITE_TEXTS = [
+    'Присоединяйся ко мне в Pulse! Будем вместе выращивать наше дерево любви и исполнять желания ✨💕',
+    'Хочу быть ближе к тебе 💕 Установи Pulse — будем отправлять друг другу любовь каждый день ❤️',
+    'У меня для тебя кое-что особенное 🌹 Давай вместе выращивать наше дерево любви в Pulse! 🌳💕',
+    'Скучаю 💭 Нашла(ёл) приложение для нас двоих — Pulse! Там можно загадывать желания и отправлять любовь ✨',
+    'Наша любовь заслуживает своё дерево 🌳❤️ Присоединяйся ко мне в Pulse — вырастим его вместе!',
+    'Psst... у меня секрет 🤫 Я уже в Pulse — жду тебя! Будем отмечать наши даты и исполнять мечты 💫',
+];
+
+function getRandomInviteText() {
+    return INVITE_TEXTS[Math.floor(Math.random() * INVITE_TEXTS.length)];
+}
+
 // Start command - register user and show main menu
 bot.command('start', async (ctx) => {
     try {
@@ -94,7 +108,13 @@ ${treeEmoji} *Ваше дерево*: уровень ${treeLevel}
 `;
             await ctx.replyWithMarkdownV2(pairedMessage, getWelcomeKeyboard(true));
         } else {
-            // Unpaired user - beautiful onboarding
+            // Unpaired user - auto-create pair if none exists
+            let currentPair = pair;
+            if (!currentPair) {
+                const result = await authService.createPair(user.id);
+                currentPair = result.pair;
+            }
+
             const welcomeMessage = `
 💕 *Добро пожаловать в Pulse\\!*
 
@@ -102,12 +122,14 @@ Pulse — это приложение для пар, которое поможе
 
 ❤️ *Отправлять любовь* одним нажатием
 📅 *Помнить важные даты* \\(годовщины, дни рождения\\)
-✨ *Находить общие желания* через свайпы
+✨ *Находить общие желания*
 🌳 *Выращивать дерево любви* вместе
 
-${pair ? `📎 *Ваш код приглашения:* \`${pair.inviteCode}\`\n\nОтправьте его партнёру\\!` : 'Создайте пару и пригласите партнёра\\!'}
+📎 *Ваш код приглашения:* \`${currentPair.inviteCode}\`
+
+Отправьте его партнёру\\!
 `;
-            await ctx.replyWithMarkdownV2(welcomeMessage, getWelcomeKeyboard(false, pair?.inviteCode));
+            await ctx.replyWithMarkdownV2(welcomeMessage, getWelcomeKeyboard(false, currentPair.inviteCode));
         }
     } catch (error) {
         console.error('Start command error:', error);
@@ -129,7 +151,7 @@ function getWelcomeKeyboard(isPaired, inviteCode = null) {
 
     if (!isPaired && inviteCode) {
         const inviteLink = `https://t.me/${config.botUsername}?start=invite_${inviteCode}`;
-        const shareText = `Присоединяйся ко мне в Pulse! Будем вместе выращивать наше дерево любви и исполнять желания ✨💕`;
+        const shareText = getRandomInviteText();
         buttons.push([
             { text: '💕 Поделиться с партнёром', url: `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(shareText)}` },
         ]);
@@ -156,13 +178,14 @@ bot.action('get_invite_code', async (ctx) => {
 
         const inviteLink = `https://t.me/${config.botUsername}?start=invite_${pair.inviteCode}`;
 
+        const shareText = getRandomInviteText();
         await ctx.editMessageText(
             `📎 *Ваш код приглашения:*\n\n\`${pair.inviteCode}\`\n\nИли отправьте эту ссылку партнёру:\n${inviteLink}`,
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: '📤 Поделиться', url: `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent('Присоединяйся ко мне в Pulse! 💕')}` }],
+                        [{ text: '📤 Поделиться', url: `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(shareText)}` }],
                         [{ text: '◀️ Назад', callback_data: 'back_to_start' }],
                     ],
                 },
@@ -314,7 +337,7 @@ bot.command('link', async (ctx) => {
         await ctx.reply(
             `📎 Отправьте эту ссылку вашему партнеру:\n\n${inviteLink}\n\nИли код: ${pair.inviteCode}`,
             Markup.inlineKeyboard([
-                Markup.button.url('Поделиться', `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent('Присоединяйся ко мне в Pulse! 💕')}`),
+                Markup.button.url('Поделиться', `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(getRandomInviteText())}`),
             ])
         );
     } catch (error) {

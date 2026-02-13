@@ -1,4 +1,4 @@
-const { Payment, User } = require('../models');
+const { Payment, User, AppSetting } = require('../models');
 const { bot } = require('../bot');
 const crypto = require('crypto');
 
@@ -7,37 +7,45 @@ class PaymentService {
      * Create an invoice link for Telegram Stars
      */
     async createInvoiceLink(user, tier) {
+        // Fetch prices from admin settings
+        const settings = await AppSetting.findAll();
+        const s = {};
+        settings.forEach(item => { s[item.key] = item.value; });
+
+        const pricingMonthly = parseInt(s.pricing_monthly || '299');
+        const pricing6month = parseInt(s.pricing_6month || '999');
+        const pricingYearly = parseInt(s.pricing_yearly || '1499');
+        const globalDiscount = parseInt(s.pricing_discount || '0');
+
         let price = 0;
         let durationDays = 0;
         let title = '';
         let description = '';
 
         if (tier === 'monthly') {
-            price = 150; // 150 Telegram Stars
+            price = pricingMonthly;
             durationDays = 30;
             title = 'Pulse Plus - 1 Month';
             description = 'Premium features for 1 month: unlimited AI psychologist, more dates, and unlimited wish matching.';
         } else if (tier === 'six_months') {
-            price = 699; // 699 Telegram Stars
+            price = pricing6month;
             durationDays = 180;
             title = 'Pulse Plus - 6 Months';
-            description = 'Premium features for 6 months (save 22%): unlimited AI psychologist, more dates, and exclusive tree levels.';
+            description = 'Premium features for 6 months: unlimited AI psychologist, more dates, and exclusive tree levels.';
         } else if (tier === 'yearly') {
-            price = 999; // 999 Telegram Stars
+            price = pricingYearly;
             durationDays = 365;
             title = 'Pulse Plus - 1 Year';
-            description = 'Premium features for 12 months (save 45%): everything unlimited and advance date notifications.';
+            description = 'Premium features for 12 months: everything unlimited and advance date notifications.';
         } else {
             throw new Error('Invalid subscription tier');
         }
 
-        // Apply discount if user has one
-        if (user.discount > 0) {
-            price = Math.round(price * (1 - user.discount / 100));
-            description += ` (Applied ${user.discount}% discount!)`;
-
-            // Note: We might want to clear the discount after successful payment or keep it.
-            // For now, let's keep it until payment is successful.
+        // Apply global discount from admin settings, or user-specific discount
+        const discount = globalDiscount > 0 ? globalDiscount : (user.discount || 0);
+        if (discount > 0) {
+            price = Math.round(price * (1 - discount / 100));
+            description += ` (Applied ${discount}% discount!)`;
         }
 
         const payload = crypto.randomBytes(16).toString('hex');

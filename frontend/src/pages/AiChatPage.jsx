@@ -13,6 +13,8 @@ const AiChatPage = () => {
     const [loading, setLoading] = useState(false);
     const [fetchingHistory, setFetchingHistory] = useState(true);
     const [user, setUser] = useState(null);
+    const [remaining, setRemaining] = useState(null);
+    const [dailyLimit, setDailyLimit] = useState(3);
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -34,6 +36,8 @@ const AiChatPage = () => {
                 apiClient.getPremiumStatus()
             ]);
             setMessages(historyData.history || []);
+            setRemaining(historyData.remaining);
+            setDailyLimit(historyData.dailyLimit || 3);
             setUser(userData);
         } catch (error) {
             console.error('Failed to load data:', error);
@@ -55,9 +59,17 @@ const AiChatPage = () => {
             const data = await apiClient.sendAiMessage(input);
             const aiMsg = { role: 'model', message: data.response, createdAt: new Date() };
             setMessages(prev => [...prev, aiMsg]);
+            if (data.remaining !== undefined) setRemaining(data.remaining);
         } catch (error) {
             console.error('Chat error:', error);
-            const errorMsg = { role: 'model', message: 'Sorry, I am having trouble connecting. Please try again later.', isError: true };
+            let errorText = 'Sorry, I am having trouble connecting. Please try again later.';
+            if (error?.message?.includes('403') || error?.status === 403) {
+                errorText = t('ai.premium_required', 'Для доступа к AI нужна подписка Premium');
+            } else if (error?.message?.includes('429') || error?.status === 429) {
+                errorText = t('ai.limit_reached', 'Дневной лимит сообщений исчерпан');
+                setRemaining(0);
+            }
+            const errorMsg = { role: 'model', message: errorText, isError: true };
             setMessages(prev => [...prev, errorMsg]);
         } finally {
             setLoading(false);
@@ -68,14 +80,11 @@ const AiChatPage = () => {
         return <div className="page-loading">{t('app.loading')}...</div>;
     }
 
-    // Basic feature gating: check if user is premium
-    // For now, let's assume we want to show a preview but limit messages,
-    // OR just show a lock screen if not premium.
-    // Let's go with the lock screen for clarity.
-
-    // We need to know if user is premium. We'll fetch it from the API or state.
-    // For simplicity, let's add a state for it or assume it's in the history response.
     const isPremium = user?.isPremium;
+    const aiEnabled = user?.aiEnabled;
+
+    // Show lock screen only if AI is not globally enabled AND user is not premium
+    const showLock = !aiEnabled && !isPremium;
 
     return (
         <div className="ai-chat-page">
@@ -85,9 +94,15 @@ const AiChatPage = () => {
                     <h1>{t('aiPsychologist')}</h1>
                     <p>{t('aiOnline')}</p>
                 </div>
+                {/* Show remaining messages for non-premium users */}
+                {!isPremium && remaining !== null && !showLock && (
+                    <div className="ai-remaining">
+                        {remaining}/{dailyLimit}
+                    </div>
+                )}
             </header>
 
-            {!isPremium ? (
+            {showLock ? (
                 <div className="premium-gate-container" style={{ top: '60px' }}>
                     <div className="premium-gate-content">
                         <div className="lock-icon">🔒</div>
@@ -141,10 +156,12 @@ const AiChatPage = () => {
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            placeholder={t('typeMessage')}
-                            disabled={loading}
+                            placeholder={remaining === 0 && !isPremium
+                                ? t('ai.limit_placeholder', 'Лимит исчерпан — получите Premium')
+                                : t('typeMessage')}
+                            disabled={loading || (remaining === 0 && !isPremium)}
                         />
-                        <button type="submit" disabled={!input.trim() || loading}>
+                        <button type="submit" disabled={!input.trim() || loading || (remaining === 0 && !isPremium)}>
                             {loading ? '...' : '→'}
                         </button>
                     </form>

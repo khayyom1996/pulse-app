@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { User, Pair, LoveClick, ImportantDate, WishMatch, WishSwipe, TreeStreak, PromoCode } = require('../models');
+const { User, Pair, LoveClick, ImportantDate, WishMatch, WishSwipe, TreeStreak, PromoCode, AppSetting } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('../config/database');
 const { bot } = require('../bot');
@@ -405,5 +405,68 @@ router.delete('/promo-codes/:id', adminAuth, async (req, res) => {
     }
 });
 
-module.exports = router;
+// =============================================
+// APP SETTINGS ENDPOINTS
+// =============================================
 
+/**
+ * GET /api/admin/settings
+ * Get all app settings
+ */
+router.get('/settings', adminAuth, async (req, res) => {
+    try {
+        const settings = await AppSetting.findAll();
+        const settingsMap = {};
+        settings.forEach(s => { settingsMap[s.key] = s.value; });
+
+        // Return with defaults
+        res.json({
+            ai_enabled: settingsMap.ai_enabled || 'false',
+            ai_daily_limit: settingsMap.ai_daily_limit || '3',
+            pricing_monthly: settingsMap.pricing_monthly || '299',
+            pricing_6month: settingsMap.pricing_6month || '999',
+            pricing_yearly: settingsMap.pricing_yearly || '1499',
+            pricing_discount: settingsMap.pricing_discount || '0',
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to get settings' });
+    }
+});
+
+/**
+ * PUT /api/admin/settings
+ * Update app settings (batch)
+ */
+router.put('/settings', adminAuth, async (req, res) => {
+    try {
+        const updates = req.body;
+
+        const allowedKeys = [
+            'ai_enabled', 'ai_daily_limit',
+            'pricing_monthly', 'pricing_6month', 'pricing_yearly', 'pricing_discount',
+        ];
+
+        for (const [key, value] of Object.entries(updates)) {
+            if (!allowedKeys.includes(key)) continue;
+            await AppSetting.upsert({ key, value: String(value) });
+        }
+
+        // Return updated settings
+        const settings = await AppSetting.findAll();
+        const settingsMap = {};
+        settings.forEach(s => { settingsMap[s.key] = s.value; });
+
+        res.json({
+            ai_enabled: settingsMap.ai_enabled || 'false',
+            ai_daily_limit: settingsMap.ai_daily_limit || '3',
+            pricing_monthly: settingsMap.pricing_monthly || '299',
+            pricing_6month: settingsMap.pricing_6month || '999',
+            pricing_yearly: settingsMap.pricing_yearly || '1499',
+            pricing_discount: settingsMap.pricing_discount || '0',
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update settings' });
+    }
+});
+
+module.exports = router;
