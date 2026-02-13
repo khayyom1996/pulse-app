@@ -105,7 +105,7 @@ const PremiumPage = () => {
                 </div>
             </div>
 
-            {premiumStatus.isPremium ? (
+            {premiumStatus.isPremium && (
                 <div className="premium-active-card">
                     <div className="success-icon">✨</div>
                     <h3>{t('premium.success')}</h3>
@@ -115,73 +115,77 @@ const PremiumPage = () => {
                         })}
                     </p>
                 </div>
-            ) : (
-                <div className="premium-options">
-                    <div
-                        className={`premium-option ${selectedTier === 'monthly' ? 'active' : ''}`}
-                        onClick={() => setSelectedTier('monthly')}
-                    >
-                        {discount > 0 && <div className="save-badge discount">-{discount}%</div>}
-                        <div className="option-info">
-                            <h3>{t('premium.monthly')}</h3>
-                            <p>
-                                {discount > 0 ? (
-                                    <>
-                                        <span className="old-price">{prices.monthly}</span>
-                                        <span> {getDiscountedPrice(prices.monthly)} {t('premium.stars')}</span>
-                                    </>
-                                ) : `${prices.monthly} ${t('premium.stars')}`}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div
-                        className={`premium-option ${selectedTier === 'six_months' ? 'active' : ''}`}
-                        onClick={() => setSelectedTier('six_months')}
-                    >
-                        <div className="save-badge">{t('premium.save_22')}</div>
-                        {discount > 0 && <div className="save-badge discount secondary">-{discount}% OFF</div>}
-                        <div className="option-info">
-                            <h3>{t('premium.six_months')}</h3>
-                            <p>
-                                {discount > 0 ? (
-                                    <>
-                                        <span className="old-price">{prices.six_months}</span>
-                                        <span> {getDiscountedPrice(prices.six_months)} {t('premium.stars')}</span>
-                                    </>
-                                ) : `${prices.six_months} ${t('premium.stars')}`}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div
-                        className={`premium-option ${selectedTier === 'yearly' ? 'active' : ''}`}
-                        onClick={() => setSelectedTier('yearly')}
-                    >
-                        <div className="save-badge">{t('premium.save_45')}</div>
-                        {discount > 0 && <div className="save-badge discount secondary">-{discount}% OFF</div>}
-                        <div className="option-info">
-                            <h3>{t('premium.yearly')}</h3>
-                            <p>
-                                {discount > 0 ? (
-                                    <>
-                                        <span className="old-price">{prices.yearly}</span>
-                                        <span> {getDiscountedPrice(prices.yearly)} {t('premium.stars')}</span>
-                                    </>
-                                ) : `${prices.yearly} ${t('premium.stars')}`}
-                            </p>
-                        </div>
-                    </div>
-
-                    <button
-                        className="btn btn-primary purchase-btn"
-                        onClick={handlePurchase}
-                        disabled={purchaseLoading}
-                    >
-                        {purchaseLoading ? t('app.loading') : t('premium.get_plus')}
-                    </button>
-                </div>
             )}
+
+            <div className="premium-options">
+                {premiumStatus.isPremium && (
+                    <h3 className="renew-title">🔄 Продлить подписку</h3>
+                )}
+
+                <div
+                    className={`premium-option ${selectedTier === 'monthly' ? 'active' : ''}`}
+                    onClick={() => setSelectedTier('monthly')}
+                >
+                    {discount > 0 && <div className="save-badge discount">-{discount}%</div>}
+                    <div className="option-info">
+                        <h3>{t('premium.monthly')}</h3>
+                        <p>
+                            {discount > 0 ? (
+                                <>
+                                    <span className="old-price">{prices.monthly}</span>
+                                    <span> {getDiscountedPrice(prices.monthly)} {t('premium.stars')}</span>
+                                </>
+                            ) : `${prices.monthly} ${t('premium.stars')}`}
+                        </p>
+                    </div>
+                </div>
+
+                <div
+                    className={`premium-option ${selectedTier === 'six_months' ? 'active' : ''}`}
+                    onClick={() => setSelectedTier('six_months')}
+                >
+                    <div className="save-badge">{t('premium.save_22')}</div>
+                    {discount > 0 && <div className="save-badge discount secondary">-{discount}% OFF</div>}
+                    <div className="option-info">
+                        <h3>{t('premium.six_months')}</h3>
+                        <p>
+                            {discount > 0 ? (
+                                <>
+                                    <span className="old-price">{prices.six_months}</span>
+                                    <span> {getDiscountedPrice(prices.six_months)} {t('premium.stars')}</span>
+                                </>
+                            ) : `${prices.six_months} ${t('premium.stars')}`}
+                        </p>
+                    </div>
+                </div>
+
+                <div
+                    className={`premium-option ${selectedTier === 'yearly' ? 'active' : ''}`}
+                    onClick={() => setSelectedTier('yearly')}
+                >
+                    <div className="save-badge">{t('premium.save_45')}</div>
+                    {discount > 0 && <div className="save-badge discount secondary">-{discount}% OFF</div>}
+                    <div className="option-info">
+                        <h3>{t('premium.yearly')}</h3>
+                        <p>
+                            {discount > 0 ? (
+                                <>
+                                    <span className="old-price">{prices.yearly}</span>
+                                    <span> {getDiscountedPrice(prices.yearly)} {t('premium.stars')}</span>
+                                </>
+                            ) : `${prices.yearly} ${t('premium.stars')}`}
+                        </p>
+                    </div>
+                </div>
+
+                <button
+                    className="btn btn-primary purchase-btn"
+                    onClick={handlePurchase}
+                    disabled={purchaseLoading}
+                >
+                    {purchaseLoading ? t('app.loading') : (premiumStatus.isPremium ? '🔄 Продлить подписку' : t('premium.get_plus'))}
+                </button>
+            </div>
 
             <footer className="payment-footer">
                 <p>Secure payment via Telegram Stars <span className="star-icon">⭐️</span></p>

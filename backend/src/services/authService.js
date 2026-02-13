@@ -192,6 +192,47 @@ class AuthService {
             pairedAt: new Date(),
         });
 
+
+        // Sync Pulse Plus status
+        const User = require('../models/User');
+        const user1 = await User.findByPk(pair.user1Id);
+        const user2 = await User.findByPk(userId);
+
+        if (user1 && user2) {
+            let sharedPremium = false;
+            let maxExpire = null;
+
+            if (user1.isPremium && user1.premiumUntil > new Date()) {
+                sharedPremium = true;
+                maxExpire = user1.premiumUntil;
+            }
+
+            if (user2.isPremium && user2.premiumUntil > new Date()) {
+                sharedPremium = true;
+                if (!maxExpire || user2.premiumUntil > maxExpire) {
+                    maxExpire = user2.premiumUntil;
+                }
+            }
+
+            if (sharedPremium) {
+                // Update both users to have the max expiry date
+                await user1.update({ isPremium: true, premiumUntil: maxExpire });
+                await user2.update({ isPremium: true, premiumUntil: maxExpire });
+
+                // Try to notify them about shared premium
+                try {
+                    const { bot } = require('../bot'); // Require bot here to avoid circular dep at top level if any
+                    const formattedDate = maxExpire.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+                    const msg = `🎉 *Pulse Plus теперь у вас двоих\\!*\n\nПодписка синхронизирована и активна до *${formattedDate.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&')}* 💎`;
+
+                    if (user1.chatId) await bot.telegram.sendMessage(user1.chatId, msg, { parse_mode: 'MarkdownV2' }).catch(() => { });
+                    if (user2.chatId) await bot.telegram.sendMessage(user2.chatId, msg, { parse_mode: 'MarkdownV2' }).catch(() => { });
+                } catch (e) {
+                    console.error('Failed to notify about shared premium sync:', e);
+                }
+            }
+        }
+
         return { pair };
     }
 }

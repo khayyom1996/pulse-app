@@ -111,14 +111,73 @@ class PaymentService {
                 appliedPromoCode: null
             });
 
-            // Notify user via bot
+            // Notify user via bot with features info and open button
             try {
-                await bot.telegram.sendMessage(user.chatId || user.id,
-                    `🎉 Поздравляем! Подписка Pulse Plus активирована до ${newExpire.toLocaleDateString('ru-RU')}.`
-                );
+                const config = require('../config');
+                const formattedDate = newExpire.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+                const message = `🎉 *Поздравляем\\! Подписка Pulse Plus активирована\\!*
+
+📅 Активна до: *${formattedDate.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&')}*
+
+Теперь вам доступно:
+🧠 *ИИ Психолог* — безлимитное общение и советы
+🌳 *Эксклюзивные деревья* — новые уровни и формы
+✨ *Тайные желания* — безлимитные совпадения
+❤️ *Безлимитная любовь* — без ограничений
+📅 *Продвинутые даты* — расширенные напоминания
+🔔 *Приоритетные уведомления* — никогда не пропустите
+
+Наслаждайтесь Pulse Plus\\! 💎`;
+
+                await bot.telegram.sendMessage(user.chatId || user.id, message, {
+                    parse_mode: 'MarkdownV2',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: '💕 Открыть Pulse', web_app: { url: config.webappUrl } }],
+                        ],
+                    },
+                });
             } catch (e) {
                 console.error('Failed to send payment notification:', e);
             }
+        }
+
+        // Share premium with partner
+        try {
+            // Require inside method to assume initialized
+            const authService = require('./authService');
+            const pair = await authService.getUserPair(user.id);
+
+            if (pair) {
+                const partner = authService.getPartner(pair, user.id);
+                if (partner) {
+                    await partner.update({
+                        isPremium: true,
+                        premiumUntil: newExpire,
+                        discount: 0
+                    });
+
+                    // Notify partner
+                    try {
+                        const formattedDate = newExpire.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+                        const partnerMsg = `🎉 *Pulse Plus активирован для вашей пары\\!*\n\nВаш партнёр оформил подписку, и теперь она доступна вам обоим до *${formattedDate.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&')}*\\! 💎`;
+
+                        const config = require('../config');
+                        await bot.telegram.sendMessage(partner.chatId || partner.id, partnerMsg, {
+                            parse_mode: 'MarkdownV2',
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [{ text: '💕 Открыть Pulse', web_app: { url: config.webappUrl } }],
+                                ],
+                            },
+                        });
+                    } catch (e) {
+                        console.error('Failed to notify partner about premium:', e);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to share premium with partner:', error);
         }
     }
 }

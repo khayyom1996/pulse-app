@@ -156,6 +156,7 @@
     justify-content: center;
     height: 100vh;
 }
+
 .old-price {
     text-decoration: line-through;
     opacity: 0.5;
@@ -168,6 +169,15 @@
     color: white;
 }
 
+
 .save-badge.discount.secondary {
     top: 36px;
+}
+
+.renew-title {
+    text-align: center;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    width: 100%;
 }

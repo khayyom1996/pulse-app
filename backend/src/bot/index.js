@@ -158,7 +158,7 @@ function getWelcomeKeyboard(isPaired, inviteCode = null) {
     }
 
     buttons.push([
-        { text: '⭐️ Pulse Plus', web_app: { url: `${config.webappUrl}/premium` } },
+        { text: '⭐️ Pulse Plus', callback_data: 'premium_info' },
         { text: '❓ Как работает Pulse', callback_data: 'how_it_works' },
     ]);
 
@@ -299,26 +299,44 @@ bot.on('text', async (ctx) => {
 
 // Premium command - show premium info and link
 bot.command('premium', async (ctx) => {
-    const premiumText = `
-⭐ *Pulse Plus* — новый уровень ваших отношений!
+    await sendPremiumInfo(ctx);
+});
 
-Что вы получите:
+// Callback: Premium info
+bot.action('premium_info', async (ctx) => {
+    await sendPremiumInfo(ctx);
+});
+
+async function sendPremiumInfo(ctx) {
+    const premiumText = `
+⭐ *Pulse Plus* — новый уровень ваших отношений\\!
+
 🧠 *ИИ Психолог* — безлимитное общение и советы
 🌳 *Эксклюзивные деревья* — новые уровни и формы
 ✨ *Тайные желания* — безлимитные совпадения
-🚀 *Приоритет* — доступ к новым функциям первым
+❤️ *Безлимитная любовь* — без ограничений
+📅 *Продвинутые даты* — расширенные напоминания
+🔔 *Приоритетные уведомления* — никогда не пропустите
 
-💎 Стоимость: всего от 150 звёзд в месяц!
+💎 Стоимость: всего от 2 звёзд в день\\!
 `;
-    await ctx.replyWithMarkdownV2(escapeMarkdown(premiumText), {
+
+    const extra = {
+        parse_mode: 'MarkdownV2',
         reply_markup: {
             inline_keyboard: [
                 [{ text: '💎 Получить Pulse Plus', web_app: { url: `${config.webappUrl}/premium` } }],
                 [{ text: '◀️ Назад', callback_data: 'back_to_start' }],
             ],
         },
-    });
-});
+    };
+
+    if (ctx.callbackQuery) {
+        await ctx.editMessageText(premiumText, extra);
+    } else {
+        await ctx.reply(premiumText, extra);
+    }
+}
 
 // Link command - create or get invite link
 bot.command('link', async (ctx) => {
