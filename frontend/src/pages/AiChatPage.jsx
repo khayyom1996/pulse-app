@@ -15,6 +15,9 @@ const AiChatPage = () => {
     const [user, setUser] = useState(null);
     const [remaining, setRemaining] = useState(null);
     const [dailyLimit, setDailyLimit] = useState(3);
+    const remaining = useState(null)[0]; // Fix state usage if needed, but here just defining ref
+    // Actually fixing the missing ref:
+    const messagesEndRef = useRef(null);
     const containerRef = useRef(null);
 
     const scrollToBottom = () => {

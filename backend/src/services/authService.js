@@ -98,7 +98,8 @@ class AuthService {
      */
     getPartner(pair, userId) {
         if (!pair) return null;
-        return pair.user1Id === userId ? pair.user2 : pair.user1;
+        // Use loose equality because IDs might be string vs number
+        return pair.user1Id == userId ? pair.user2 : pair.user1;
     }
 
     /**
@@ -162,7 +163,7 @@ class AuthService {
 
 
         // Sync Pulse Plus status
-        const User = require('../models/User');
+        // Use global User model
         const user1 = await User.findByPk(pair.user1Id);
         const user2 = await User.findByPk(userId);
 

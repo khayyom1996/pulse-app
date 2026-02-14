@@ -162,29 +162,38 @@ class PaymentService {
                         discount: 0
                     });
 
+                    console.log(`Synced premium for partner ${partner.id} of user ${user.id}`);
+
                     // Notify partner
                     try {
                         const formattedDate = newExpire.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
                         const partnerMsg = `🎉 *Pulse Plus активирован для вашей пары\\!*\n\nВаш партнёр оформил подписку, и теперь она доступна вам обоим до *${formattedDate.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&')}*\\! 💎`;
 
                         const config = require('../config');
-                        await bot.telegram.sendMessage(partner.chatId || partner.id, partnerMsg, {
-                            parse_mode: 'MarkdownV2',
-                            reply_markup: {
-                                inline_keyboard: [
-                                    [{ text: '💕 Открыть Pulse', web_app: { url: config.webappUrl } }],
-                                ],
-                            },
-                        });
+                        if (partner.chatId) {
+                            await bot.telegram.sendMessage(partner.chatId, partnerMsg, {
+                                parse_mode: 'MarkdownV2',
+                                reply_markup: {
+                                    inline_keyboard: [
+                                        [{ text: '💕 Открыть Pulse', web_app: { url: config.webappUrl } }],
+                                    ],
+                                },
+                            });
+                        }
                     } catch (e) {
                         console.error('Failed to notify partner about premium:', e);
                     }
+                } else {
+                    console.log(`No partner found for user ${user.id} to sync premium`);
                 }
+            } else {
+                console.log(`No pair found for user ${user.id} to sync premium`);
             }
         } catch (error) {
             console.error('Failed to share premium with partner:', error);
         }
     }
 }
+
 
 module.exports = new PaymentService();
