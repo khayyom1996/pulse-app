@@ -138,49 +138,50 @@ class PaymentService {
             } catch (e) {
                 console.error(`Failed to send payment notification to buyer ${user.id}:`, e);
             }
-        }
 
-        // 3. Share premium with partner and notify them
-        try {
-            const authService = require('./authService');
-            // Force fetch pair again to be sure
-            const pair = await authService.getUserPair(user.id);
 
-            if (pair) {
-                const partner = authService.getPartner(pair, user.id);
+            // 3. Share premium with partner and notify them
+            try {
+                const authService = require('./authService');
+                // Force fetch pair again to be sure
+                const pair = await authService.getUserPair(user.id);
 
-                if (partner) {
-                    console.log(`Found partner ${partner.id} for user ${user.id}. Syncing premium...`);
+                if (pair) {
+                    const partner = authService.getPartner(pair, user.id);
 
-                    // Update partner premium
-                    await partner.update({
-                        isPremium: true,
-                        premiumUntil: newExpire,
-                        discount: 0
-                    });
+                    if (partner) {
+                        console.log(`Found partner ${partner.id} for user ${user.id}. Syncing premium...`);
 
-                    // Notify partner with the SAME message
-                    try {
-                        const config = require('../config'); // ensure config is available
-                        const partnerChatId = partner.chatId || partner.id;
+                        // Update partner premium
+                        await partner.update({
+                            isPremium: true,
+                            premiumUntil: newExpire,
+                            discount: 0
+                        });
 
-                        if (partnerChatId) {
-                            await bot.telegram.sendMessage(partnerChatId, sharedMessage, keyboard);
-                            console.log(`Notification sent to partner ${partner.id}`);
-                        } else {
-                            console.error(`Partner ${partner.id} has no chatId`);
+                        // Notify partner with the SAME message
+                        try {
+                            const config = require('../config'); // ensure config is available
+                            const partnerChatId = partner.chatId || partner.id;
+
+                            if (partnerChatId) {
+                                await bot.telegram.sendMessage(partnerChatId, sharedMessage, keyboard);
+                                console.log(`Notification sent to partner ${partner.id}`);
+                            } else {
+                                console.error(`Partner ${partner.id} has no chatId`);
+                            }
+                        } catch (e) {
+                            console.error(`Failed to notify partner ${partner.id} about premium:`, e);
                         }
-                    } catch (e) {
-                        console.error(`Failed to notify partner ${partner.id} about premium:`, e);
+                    } else {
+                        console.log(`User ${user.id} has a pair but no partner (pending invite?)`);
                     }
                 } else {
-                    console.log(`User ${user.id} has a pair but no partner (pending invite?)`);
+                    console.log(`User ${user.id} has no pair, skipping partner sync`);
                 }
-            } else {
-                console.log(`User ${user.id} has no pair, skipping partner sync`);
+            } catch (error) {
+                console.error('Critical error in partner sync:', error);
             }
-        } catch (error) {
-            console.error('Critical error in partner sync:', error);
         }
     }
 }
