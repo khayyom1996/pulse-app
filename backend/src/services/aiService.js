@@ -3,8 +3,24 @@ const { AiChat, Wish, User, Pair } = require('../models');
 
 class AiService {
     constructor() {
-        this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        this.apiKey = process.env.GEMINI_API_KEY;
+        this.genAI = null;
+        this.model = null;
+
+        this._initModel();
+    }
+
+    _initModel() {
+        try {
+            if (this.apiKey) {
+                this.genAI = new GoogleGenerativeAI(this.apiKey);
+                this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+            } else {
+                console.warn('GEMINI_API_KEY is missing. AI features will be disabled.');
+            }
+        } catch (error) {
+            console.error('Failed to initialize Gemini AI:', error);
+        }
     }
 
     /**
@@ -126,6 +142,13 @@ class AiService {
             const coupleContext = await this._getCoupleContext(pairId, userId);
 
             // 5. Start chat with Gemini
+            if (!this.model) {
+                this._initModel(); // Try to init again if missing
+                if (!this.model) {
+                    throw new Error('AI service is not available (missing configuration)');
+                }
+            }
+
             const chatSession = this.model.startChat({
                 history: contents,
                 systemInstruction: {
