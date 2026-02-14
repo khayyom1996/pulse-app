@@ -5,22 +5,22 @@ import './Onboarding.css';
 
 const slides = [
     {
-        image: '/images/onboarding_love.png',
+        image: '/images/onboarding_1.png',
         titleKey: 'onboarding.slide1_title',
         descKey: 'onboarding.slide1_desc',
     },
     {
-        image: '/images/onboarding_dates.png',
+        image: '/images/onboarding_2.png',
         titleKey: 'onboarding.slide2_title',
         descKey: 'onboarding.slide2_desc',
     },
     {
-        image: '/images/onboarding_wishes.png',
+        image: '/images/onboarding_3.png',
         titleKey: 'onboarding.slide3_title',
         descKey: 'onboarding.slide3_desc',
     },
     {
-        image: '/images/onboarding_tree.png',
+        image: '/images/onboarding_4.png',
         titleKey: 'onboarding.slide4_title',
         descKey: 'onboarding.slide4_desc',
     },

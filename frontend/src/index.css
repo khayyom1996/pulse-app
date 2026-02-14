@@ -71,7 +71,8 @@ body {
     min-height: 100vh;
     font-family: var(--font-family);
     font-size: var(--font-size-md);
-    background: var(--bg-primary);
+    background: linear-gradient(to bottom right, #000000, #ff5757);
+    background-attachment: fixed;
     color: var(--text-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -270,6 +271,7 @@ body {
     font-size: var(--font-size-2xl);
     font-weight: 700;
     background: var(--gradient-love);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: var(--spacing-lg);

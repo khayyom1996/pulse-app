@@ -17,16 +17,7 @@
         "send_love": "Отправить любовь",
         "love_sent": "💕 Любовь отправлена!",
         "streak": "Дней вместе",
-        "today_loves": "кликов сегодня",
-        "valentine_countdown": "До 14 февраля:"
-    },
-    "valentine": {
-        "days": "д",
-        "hours": "ч",
-        "minutes": "м",
-        "seconds": "с",
-        "gift_arrived": "Подарок для вас! ✨",
-        "gift_text": "Сегодня день вашей любви. Мы дарим вам 1 день Premium-статуса!"
+        "today_loves": "кликов сегодня"
     },
     "love": {
         "button_hint": "Нажмите, чтобы отправить любовь",

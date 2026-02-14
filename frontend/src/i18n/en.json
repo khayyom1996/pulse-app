@@ -17,16 +17,7 @@
         "send_love": "Send love",
         "love_sent": "💕 Love sent!",
         "streak": "Days together",
-        "today_loves": "loves today",
-        "valentine_countdown": "Until Feb 14:"
-    },
-    "valentine": {
-        "days": "d",
-        "hours": "h",
-        "minutes": "m",
-        "seconds": "s",
-        "gift_arrived": "A gift for you! ✨",
-        "gift_text": "Today is your day of love. We gift you 1 day of Premium status!"
+        "today_loves": "loves today"
     },
     "love": {
         "button_hint": "Tap to send love",
