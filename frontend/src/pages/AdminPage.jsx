@@ -290,6 +290,9 @@ export default function AdminPage() {
         { id: 'settings', icon: '⚙️', label: 'Настройки' },
     ];
 
+    const maxUserCount = Math.max(...(userChart || []).map(d => d.count), 1);
+    const maxActivityCount = Math.max(...(activityChart || []).map(d => d.loveClicks), 1);
+
     return (
         <div className={`admin-layout ${sidebarOpen ? 'sidebar-open' : ''}`}>
             {/* Sidebar */}
