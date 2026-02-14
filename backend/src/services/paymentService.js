@@ -13,8 +13,13 @@ class PaymentService {
         settings.forEach(item => { s[item.key] = item.value; });
 
         const pricingMonthly = parseInt(s.pricing_monthly || '299');
-        const pricing6month = parseInt(s.pricing_6month || '999');
-        const pricingYearly = parseInt(s.pricing_yearly || '1499');
+
+        // Calculate other prices based on monthly price (as requested)
+        // 6 months: ~22% discount
+        const pricing6month = Math.floor(pricingMonthly * 6 * 0.78);
+        // Yearly: ~45% discount
+        const pricingYearly = Math.floor(pricingMonthly * 12 * 0.55);
+
         const globalDiscount = parseInt(s.pricing_discount || '0');
 
         let price = 0;

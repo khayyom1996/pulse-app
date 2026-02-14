@@ -1,3 +1,4 @@
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { AiChat, Wish, User, Pair } = require('../models');
 
 class AiService {

@@ -134,8 +134,14 @@ const PremiumPage = () => {
                                 <>
                                     <span className="old-price">{prices.monthly}</span>
                                     <span> {getDiscountedPrice(prices.monthly)} {t('premium.stars')}</span>
+                                    <span className="usd-price"> (~${(getDiscountedPrice(prices.monthly) * 0.02).toFixed(2)})</span>
                                 </>
-                            ) : `${prices.monthly} ${t('premium.stars')}`}
+                            ) : (
+                                <>
+                                    {prices.monthly} {t('premium.stars')}
+                                    <span className="usd-price"> (~${(prices.monthly * 0.02).toFixed(2)})</span>
+                                </>
+                            )}
                         </p>
                     </div>
                 </div>
@@ -153,8 +159,14 @@ const PremiumPage = () => {
                                 <>
                                     <span className="old-price">{prices.six_months}</span>
                                     <span> {getDiscountedPrice(prices.six_months)} {t('premium.stars')}</span>
+                                    <span className="usd-price"> (~${(getDiscountedPrice(prices.six_months) * 0.02).toFixed(2)})</span>
                                 </>
-                            ) : `${prices.six_months} ${t('premium.stars')}`}
+                            ) : (
+                                <>
+                                    {prices.six_months} {t('premium.stars')}
+                                    <span className="usd-price"> (~${(prices.six_months * 0.02).toFixed(2)})</span>
+                                </>
+                            )}
                         </p>
                     </div>
                 </div>
@@ -172,8 +184,14 @@ const PremiumPage = () => {
                                 <>
                                     <span className="old-price">{prices.yearly}</span>
                                     <span> {getDiscountedPrice(prices.yearly)} {t('premium.stars')}</span>
+                                    <span className="usd-price"> (~${(getDiscountedPrice(prices.yearly) * 0.02).toFixed(2)})</span>
                                 </>
-                            ) : `${prices.yearly} ${t('premium.stars')}`}
+                            ) : (
+                                <>
+                                    {prices.yearly} {t('premium.stars')}
+                                    <span className="usd-price"> (~${(prices.yearly * 0.02).toFixed(2)})</span>
+                                </>
+                            )}
                         </p>
                     </div>
                 </div>
