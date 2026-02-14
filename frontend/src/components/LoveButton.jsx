@@ -6,7 +6,7 @@ import api from '../api/client';
 import { trackEvent } from '../config/firebase';
 import './LoveButton.css';
 
-export default function LoveButton({ onLoveSent, disabled }) {
+export default function LoveButton({ onLoveSent, disabled, onLimitReached }) {
     const { t } = useTranslation();
     const { haptic } = useTelegram();
     const [pressed, setPressed] = useState(false);
@@ -44,8 +44,9 @@ export default function LoveButton({ onLoveSent, disabled }) {
                         return c - 1;
                     });
                 }, 1000);
-            } else if (error.message === 'limit_reached') {
-                window.Telegram?.WebApp?.showAlert(t('love.limit_reached_alert'));
+            } else if (error.message === 'limit_reached' || error.message === 'LIMIT_LOVE' || error?.response?.data?.code === 'LIMIT_LOVE') {
+                if (onLimitReached) onLimitReached();
+                // window.Telegram?.WebApp?.showAlert(t('love.limit_reached_alert'));
             }
         } finally {
             setSending(false);

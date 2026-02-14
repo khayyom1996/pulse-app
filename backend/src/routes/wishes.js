@@ -182,6 +182,22 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Not paired' });
         }
 
+        const user = await User.findByPk(userId);
+        if (!user.isPremium) {
+            const AppSetting = require('../models/AppSetting');
+            const limitSetting = await AppSetting.findOne({ where: { key: 'free_wishes_limit' } });
+            const limit = parseInt(limitSetting?.value || '3');
+
+            const wishCount = await Wish.count({ where: { pairId: pair.id, userId } });
+            if (wishCount >= limit) {
+                return res.status(403).json({
+                    error: 'limit_reached',
+                    code: 'LIMIT_WISHES',
+                    message: `Free users can only add ${limit} wishes. Upgrade to Pulse Plus for more!`
+                });
+            }
+        }
+
         const wish = await Wish.create({
             pairId: pair.id,
             userId,

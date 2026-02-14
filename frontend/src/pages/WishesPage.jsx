@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import api from '../api/client';
+import UpsellModal from '../components/UpsellModal';
 import './WishesPage.css';
 
 const EMOJI_OPTIONS = ['💫', '❤️', '🌟', '🎁', '🏖️', '🍽️', '🎬', '🎵', '💐', '🏠'];
@@ -15,6 +16,7 @@ export default function WishesPage() {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [showUpsell, setShowUpsell] = useState(false);
 
     const fetchWishes = useCallback(async () => {
         try {
@@ -50,6 +52,9 @@ export default function WishesPage() {
             fetchWishes();
         } catch (err) {
             console.error('Failed to create wish:', err);
+            if (err?.response?.data?.code === 'LIMIT_WISHES' || err?.response?.data?.error === 'limit_reached') {
+                setShowUpsell(true);
+            }
         } finally {
             setSubmitting(false);
         }
@@ -212,6 +217,12 @@ export default function WishesPage() {
                     </div>
                 )}
             </section>
+
+            <UpsellModal
+                isOpen={showUpsell}
+                onClose={() => setShowUpsell(false)}
+                type="wishes"
+            />
         </div>
     );
 }

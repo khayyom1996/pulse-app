@@ -498,6 +498,8 @@ router.get('/settings', adminAuth, async (req, res) => {
             pricing_6month: settingsMap.pricing_6month || '999',
             pricing_yearly: settingsMap.pricing_yearly || '1499',
             pricing_discount: settingsMap.pricing_discount || '0',
+            free_dates_limit: settingsMap.free_dates_limit || '3',
+            free_wishes_limit: settingsMap.free_wishes_limit || '3',
         });
     } catch (error) {
         res.status(500).json({ error: 'Failed to get settings' });
@@ -515,6 +517,7 @@ router.put('/settings', adminAuth, async (req, res) => {
         const allowedKeys = [
             'ai_enabled', 'ai_daily_limit',
             'pricing_monthly', 'pricing_6month', 'pricing_yearly', 'pricing_discount',
+            'free_dates_limit', 'free_wishes_limit',
         ];
 
         for (const [key, value] of Object.entries(updates)) {
@@ -534,6 +537,8 @@ router.put('/settings', adminAuth, async (req, res) => {
             pricing_6month: settingsMap.pricing_6month || '999',
             pricing_yearly: settingsMap.pricing_yearly || '1499',
             pricing_discount: settingsMap.pricing_discount || '0',
+            free_dates_limit: settingsMap.free_dates_limit || '3',
+            free_wishes_limit: settingsMap.free_wishes_limit || '3',
         });
     } catch (error) {
         res.status(500).json({ error: 'Failed to update settings' });

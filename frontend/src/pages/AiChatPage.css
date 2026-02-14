@@ -129,6 +129,8 @@
     border-top: 1px solid var(--border-color);
     display: flex;
     gap: 8px;
+    padding-bottom: 24px;
+    /* Fix for bottom nav overlap */
 }
 
 .chat-input-area input {

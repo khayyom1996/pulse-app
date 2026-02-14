@@ -29,6 +29,11 @@
         "level_3": "Young tree",
         "level_4": "Mature tree",
         "level_5": "Blooming tree",
+        "level_6": "Fruitful tree",
+        "level_7": "Centennial tree",
+        "level_8": "Wise tree",
+        "level_9": "Tree of Life",
+        "level_10": "Cosmic tree",
         "days_to_next": "Next level in {{days}} days"
     },
     "dates": {
@@ -83,10 +88,10 @@
         "start": "Get Started",
         "slide1_title": "Send Love",
         "slide1_desc": "Tap the heart and your partner instantly gets notified that you're thinking of them",
-        "slide2_title": "Remember What Matters",
-        "slide2_desc": "Add anniversaries, birthdays and important dates — we'll remind you on time",
-        "slide3_title": "Find Shared Dreams",
-        "slide3_desc": "Swipe wish cards — when you match, you'll discover what you both want",
+        "slide2_title": "AI Psychologist Session",
+        "slide2_desc": "The AI Psychologist asks questions, helps you explore emotions, and gently guides the conversation.",
+        "slide3_title": "Remember What Matters",
+        "slide3_desc": "Add anniversaries, birthdays and important dates — we'll remind you on time",
         "slide4_title": "Grow Together",
         "slide4_desc": "Your love tree grows with every day you're active together in the app"
     },
@@ -119,6 +124,13 @@
             "dates": "More than 3 dates 📅"
         },
         "success": "Congrats! Pulse Plus activated.",
-        "limit_reached_alert": "Free users can send love once a day. Upgrade to Pulse Plus for unlimited love! ❤️"
+        "limit_reached_alert": "Free users can send love once a day. Upgrade to Pulse Plus for unlimited love! ❤️",
+        "upsell": {
+            "title": "Limit Reached",
+            "love_desc": "You've already sent love today. Want unlimited love?",
+            "dates_desc": "You've reached the limit of 3 dates. Unlock unlimited dates with Pulse Plus!",
+            "wishes_desc": "You've reached the limit of 3 wishes. Get unlimited wishes with Pulse Plus!",
+            "btn": "Get Pulse Plus"
+        }
     }
 }

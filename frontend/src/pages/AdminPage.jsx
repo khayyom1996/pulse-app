@@ -26,6 +26,8 @@ export default function AdminPage() {
         pricing_6month: '999',
         pricing_yearly: '1499',
         pricing_discount: '0',
+        free_dates_limit: '3',
+        free_wishes_limit: '3',
     });
     const [settingsLoading, setSettingsLoading] = useState(false);
     const [settingsSaved, setSettingsSaved] = useState(false);
@@ -799,6 +801,30 @@ export default function AdminPage() {
                                         }))}
                                         min="0"
                                         max="100"
+                                    />
+                                </div>
+                                <div className="setting-row">
+                                    <label>Лимит дат (Free)</label>
+                                    <input
+                                        type="number"
+                                        className="setting-input"
+                                        value={appSettings.free_dates_limit}
+                                        onChange={(e) => setAppSettings(prev => ({
+                                            ...prev,
+                                            free_dates_limit: e.target.value,
+                                        }))}
+                                    />
+                                </div>
+                                <div className="setting-row">
+                                    <label>Лимит желаний (Free)</label>
+                                    <input
+                                        type="number"
+                                        className="setting-input"
+                                        value={appSettings.free_wishes_limit}
+                                        onChange={(e) => setAppSettings(prev => ({
+                                            ...prev,
+                                            free_wishes_limit: e.target.value,
+                                        }))}
                                     />
                                 </div>
                             </div>

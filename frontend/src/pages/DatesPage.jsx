@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/client';
+import UpsellModal from '../components/UpsellModal';
 import './DatesPage.css';
 
 export default function DatesPage() {
@@ -16,6 +17,7 @@ export default function DatesPage() {
         reminderDays: 1,
         visibility: 'both',
     });
+    const [showUpsell, setShowUpsell] = useState(false);
 
     useEffect(() => {
         loadDates();
@@ -41,6 +43,9 @@ export default function DatesPage() {
             loadDates();
         } catch (error) {
             console.error('Failed to create date:', error);
+            if (error?.response?.data?.code === 'LIMIT_DATES' || error?.response?.data?.error === 'limit_reached') {
+                setShowUpsell(true);
+            }
         }
     };
 
@@ -217,6 +222,12 @@ export default function DatesPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <UpsellModal
+                isOpen={showUpsell}
+                onClose={() => setShowUpsell(false)}
+                type="dates"
+            />
         </div>
     );
 }

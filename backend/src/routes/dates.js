@@ -68,11 +68,16 @@ router.post('/', async (req, res) => {
 
         const user = await User.findByPk(userId);
         if (!user.isPremium) {
+            const AppSetting = require('../models/AppSetting');
+            const limitSetting = await AppSetting.findOne({ where: { key: 'free_dates_limit' } });
+            const limit = parseInt(limitSetting?.value || '3');
+
             const dateCount = await ImportantDate.count({ where: { pairId: pair.id } });
-            if (dateCount >= 3) {
+            if (dateCount >= limit) {
                 return res.status(403).json({
                     error: 'limit_reached',
-                    message: 'Free users can only add 3 important dates. Upgrade to Pulse Plus for more!'
+                    code: 'LIMIT_DATES',
+                    message: `Free users can only add ${limit} important dates. Upgrade to Pulse Plus for more!`
                 });
             }
         }

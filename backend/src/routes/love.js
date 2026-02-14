@@ -33,6 +33,7 @@ router.post('/', async (req, res) => {
         if (!result.success) {
             return res.status(429).json({
                 error: result.error,
+                code: result.error === 'limit_reached' ? 'LIMIT_LOVE' : 'COOLDOWN',
                 cooldownRemaining: result.cooldownRemaining,
             });
         }

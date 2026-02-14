@@ -61,20 +61,6 @@ const ProfilePage = () => {
             )}
 
             <div className="profile-section">
-                <h2>{t('wishes.matches_title')}</h2>
-                <div className="profile-stats-grid">
-                    <div className="stat-card">
-                        <span className="stat-value">{stats?.totalMatches || 0}</span>
-                        <span className="stat-label">Совпадений</span>
-                    </div>
-                    <div className="stat-card">
-                        <span className="stat-value">{stats?.totalSwipes || 0}</span>
-                        <span className="stat-label">Свайпов</span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="profile-section">
                 <h2>Настройки</h2>
                 <div className="settings-list">
                     <div className="setting-item" onClick={toggleLanguage}>
