@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const wishService = require('../services/wishService');
 const authService = require('../services/authService');
-const { Wish } = require('../models');
+const { Wish, User } = require('../models');
 
 /**
  * GET /api/wishes/cards

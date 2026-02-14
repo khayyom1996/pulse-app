@@ -129,7 +129,7 @@
     border-top: 1px solid var(--border-color);
     display: flex;
     gap: 8px;
-    padding-bottom: 24px;
+    padding-bottom: 90px;
     /* Fix for bottom nav overlap */
 }
 
