@@ -146,7 +146,7 @@ function escapeMarkdown(text) {
 // Welcome keyboard with inline buttons
 function getWelcomeKeyboard(isPaired, inviteCode = null) {
     const buttons = [
-        [{ text: '🚀 Начать приключение', web_app: { url: config.webappUrl } }],
+        [{ text: '🚀 Открыть pulse', web_app: { url: config.webappUrl } }],
     ];
 
     if (!isPaired && inviteCode) {
@@ -497,7 +497,7 @@ bot.on('successful_payment', async (ctx) => {
         await paymentService.handleSuccessfulPayment(payload, chargeId);
 
         console.log(`✅ Payment successful for payload: ${payload}`);
-        await ctx.reply('✨ Спасибо за покупку Pulse Plus! Ваша подписка активирована.');
+        // await ctx.reply('✨ Спасибо за покупку Pulse Plus! Ваша подписка активирована.');
     } catch (error) {
         console.error('Successful payment handler error:', error);
     }

@@ -36,6 +36,12 @@ export default function AdminPage() {
     const [broadcastResult, setBroadcastResult] = useState(null);
     const [sending, setSending] = useState(false);
 
+    // New Features State
+    const [pairs, setPairs] = useState([]);
+    const [payments, setPayments] = useState([]);
+    const [broadcastTestId, setBroadcastTestId] = useState('');
+    const [broadcastLink, setBroadcastLink] = useState({ text: '', url: '' });
+
     const headers = { 'X-Admin-Key': adminKey };
 
     const loadSettings = async () => {
@@ -111,6 +117,49 @@ export default function AdminPage() {
         setLoading(false);
     };
 
+    const loadPairs = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/api/admin/pairs`, { headers });
+            if (res.ok) {
+                const data = await res.json();
+                setPairs(data.pairs || []);
+            }
+        } catch (e) {
+            console.error('Pairs load error:', e);
+        }
+        setLoading(false);
+    };
+
+    const loadPayments = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/api/admin/payments`, { headers });
+            if (res.ok) {
+                const data = await res.json();
+                setPayments(data.payments || []);
+            }
+        } catch (e) {
+            console.error('Payments load error:', e);
+        }
+        setLoading(false);
+    };
+
+    const deletePayment = async (id) => {
+        if (!window.confirm('Delete payment?')) return;
+        try {
+            const res = await fetch(`${API_URL}/api/admin/payments/${id}`, {
+                method: 'DELETE',
+                headers
+            });
+            if (res.ok) {
+                loadPayments();
+            }
+        } catch (e) {
+            console.error('Delete payment error:', e);
+        }
+    };
+
     const sendBroadcast = async () => {
         if (!broadcastMessage.trim()) return;
 
@@ -118,10 +167,17 @@ export default function AdminPage() {
         setBroadcastResult(null);
 
         try {
+            const body = {
+                message: broadcastMessage,
+                targetGroup,
+                testUserId: broadcastTestId,
+                linkData: broadcastLink.text && broadcastLink.url ? broadcastLink : null
+            };
+
             const res = await fetch(`${API_URL}/api/admin/broadcast`, {
                 method: 'POST',
                 headers: { ...headers, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: broadcastMessage, targetGroup }),
+                body: JSON.stringify(body),
             });
 
             const data = await res.json();
@@ -213,38 +269,22 @@ export default function AdminPage() {
         if (isAuthenticated && activeTab === 'users') {
             loadUsers();
         }
+        if (isAuthenticated && activeTab === 'pairs') {
+            loadPairs();
+        }
+        if (isAuthenticated && activeTab === 'payments') {
+            loadPayments();
+        }
         if (isAuthenticated && activeTab === 'promo') {
             loadPromoCodes();
         }
     }, [activeTab, isAuthenticated]);
 
-    if (!isAuthenticated) {
-        return (
-            <div className="admin-login">
-                <div className="login-card">
-                    <h1>🔐 Pulse Admin</h1>
-                    <input
-                        type="password"
-                        placeholder="Admin Secret Key"
-                        value={adminKey}
-                        onChange={(e) => setAdminKey(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && authenticate()}
-                    />
-                    {error && <p className="error">{error}</p>}
-                    <button onClick={authenticate} disabled={loading}>
-                        {loading ? 'Проверка...' : 'Войти'}
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    const maxUserCount = Math.max(...userChart.map(d => d.count), 1);
-    const maxActivityCount = Math.max(...activityChart.map(d => d.loveClicks + d.swipes), 1);
-
     const menuItems = [
         { id: 'dashboard', icon: '📊', label: 'Dashboard' },
         { id: 'users', icon: '👥', label: 'Пользователи' },
+        { id: 'pairs', icon: '💕', label: 'Пары' },
+        { id: 'payments', icon: '💸', label: 'Платежи' },
         { id: 'promo', icon: '🎟️', label: 'Промокоды' },
         { id: 'broadcast', icon: '📢', label: 'Рассылка' },
         { id: 'settings', icon: '⚙️', label: 'Настройки' },
@@ -323,6 +363,13 @@ export default function AdminPage() {
                                         <span className="stat-value">{stats.activity.totalLoveClicks}</span>
                                         <span className="stat-label">Кликов любви</span>
                                         <span className="stat-sub">~{stats.activity.avgPerDay}/день</span>
+                                    </div>
+                                </div>
+                                <div className="stat-card">
+                                    <div className="stat-icon">🤖</div>
+                                    <div className="stat-info">
+                                        <span className="stat-value">{stats.activity.aiMessages || 0}</span>
+                                        <span className="stat-label">Сообщений AI</span>
                                     </div>
                                 </div>
                                 <div className="stat-card engagement">
@@ -426,6 +473,92 @@ export default function AdminPage() {
                         </div>
                     )}
 
+                    {/* Pairs Tab */}
+                    {activeTab === 'pairs' && (
+                        <div className="panel users-panel">
+                            <h3>💕 Пары ({pairs.length})</h3>
+                            <div className="users-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Пользователь 1</th>
+                                            <th>Пользователь 2</th>
+                                            <th>Pulse Plus</th>
+                                            <th>Дата создания</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {pairs.map(p => (
+                                            <tr key={p.id}>
+                                                <td>{p.id}</td>
+                                                <td>{p.user1 ? `${p.user1.firstName} ${p.user1.lastName || ''}` : p.user1Id}</td>
+                                                <td>{p.user2 ? `${p.user2.firstName} ${p.user2.lastName || ''}` : (p.user2Id || '-')}</td>
+                                                <td>
+                                                    {p.hasPremium ? (
+                                                        <span className="premium-badge">✨ ACTIVE</span>
+                                                    ) : (
+                                                        <span className="status-inactive">-</span>
+                                                    )}
+                                                </td>
+                                                <td>{new Date(p.createdAt).toLocaleDateString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Payments Tab */}
+                    {activeTab === 'payments' && (
+                        <div className="panel users-panel">
+                            <h3>💸 Платежи ({payments.length})</h3>
+                            <div className="users-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Пользователь</th>
+                                            <th>Сумма</th>
+                                            <th>Валюта</th>
+                                            <th>Статус</th>
+                                            <th>Дата</th>
+                                            <th>Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {payments.map(p => (
+                                            <tr key={p.id}>
+                                                <td>{p.id}</td>
+                                                <td>{p.User ? `${p.User.firstName} (@${p.User.username})` : p.userId}</td>
+                                                <td>{p.amount}</td>
+                                                <td>{p.currency}</td>
+                                                <td>
+                                                    <span className={`status-badge status-${p.status}`}>
+                                                        {p.status}
+                                                    </span>
+                                                </td>
+                                                <td>{new Date(p.createdAt).toLocaleString()}</td>
+                                                <td>
+                                                    {p.status === 'pending' && (
+                                                        <button
+                                                            className="delete-btn-cell"
+                                                            onClick={() => deletePayment(p.id)}
+                                                            title="Удалить"
+                                                        >
+                                                            🗑️
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Broadcast Tab */}
                     {activeTab === 'broadcast' && (
                         <div className="panel broadcast-panel">
@@ -441,8 +574,22 @@ export default function AdminPage() {
                                         <option value="paired">Только в паре</option>
                                         <option value="unpaired">Без пары</option>
                                         <option value="active">Активные (7 дней)</option>
+                                        <option value="test">Тест (конкретный ID)</option>
                                     </select>
                                 </div>
+
+                                {targetGroup === 'test' && (
+                                    <div className="form-group">
+                                        <label>ID пользователя (тест)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="123456789"
+                                            value={broadcastTestId}
+                                            onChange={(e) => setBroadcastTestId(e.target.value)}
+                                        />
+                                    </div>
+                                )}
+
                                 <div className="form-group">
                                     <label>Текст сообщения (Markdown)</label>
                                     <textarea
@@ -451,6 +598,27 @@ export default function AdminPage() {
                                         onChange={(e) => setBroadcastMessage(e.target.value)}
                                         rows={6}
                                     />
+                                </div>
+
+                                <div className="form-group-row">
+                                    <div className="form-group">
+                                        <label>Текст кнопки (опционально)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Открыть"
+                                            value={broadcastLink.text}
+                                            onChange={(e) => setBroadcastLink({ ...broadcastLink, text: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Ссылка кнопки</label>
+                                        <input
+                                            type="text"
+                                            placeholder="https://..."
+                                            value={broadcastLink.url}
+                                            onChange={(e) => setBroadcastLink({ ...broadcastLink, url: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
                                 <button
                                     onClick={sendBroadcast}

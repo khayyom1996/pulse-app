@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { User, Pair, LoveClick, ImportantDate, WishMatch, WishSwipe, TreeStreak, PromoCode, AppSetting } = require('../models');
+const { User, Pair, LoveClick, ImportantDate, WishMatch, WishSwipe, TreeStreak, PromoCode, AppSetting, Payment, AiChat } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('../config/database');
 const { bot } = require('../bot');
@@ -31,7 +31,8 @@ router.get('/stats', adminAuth, async (req, res) => {
             totalPairs, activePairs, pendingPairs,
             totalLoveClicks, loveTodayCount, loveWeekCount,
             totalDates, totalMatches, totalSwipes,
-            avgStreak
+            avgStreak,
+            aiMessagesCount
         ] = await Promise.all([
             User.count(),
             User.count({ where: { createdAt: { [Op.gte]: today } } }),
@@ -48,7 +49,8 @@ router.get('/stats', adminAuth, async (req, res) => {
             WishSwipe.count(),
             TreeStreak.findOne({
                 attributes: [[sequelize.fn('AVG', sequelize.col('current_streak')), 'avgStreak']],
-            })
+            }),
+            AiChat.count({ where: { role: 'user' } })
         ]);
 
         res.json({
@@ -68,6 +70,7 @@ router.get('/stats', adminAuth, async (req, res) => {
                 loveToday: loveTodayCount,
                 loveWeek: loveWeekCount,
                 avgPerDay: Math.round(loveWeekCount / 7),
+                aiMessages: aiMessagesCount
             },
             engagement: {
                 totalDates,
@@ -79,6 +82,72 @@ router.get('/stats', adminAuth, async (req, res) => {
     } catch (error) {
         console.error('Admin stats error:', error);
         res.status(500).json({ error: 'Failed to get stats' });
+    }
+});
+
+/**
+ * GET /api/admin/pairs
+ * Get pairs list with premium status
+ */
+router.get('/pairs', adminAuth, async (req, res) => {
+    try {
+        const pairs = await Pair.findAll({
+            include: [
+                { model: User, as: 'user1', attributes: ['id', 'firstName', 'lastName', 'isPremium', 'premiumUntil'] },
+                { model: User, as: 'user2', attributes: ['id', 'firstName', 'lastName', 'isPremium', 'premiumUntil'] }
+            ],
+            order: [['createdAt', 'DESC']],
+            limit: 50
+        });
+
+        const pairsWithStatus = pairs.map(p => {
+            const u1Premium = p.user1?.isPremium && new Date(p.user1.premiumUntil) > new Date();
+            const u2Premium = p.user2?.isPremium && new Date(p.user2.premiumUntil) > new Date();
+            return {
+                ...p.toJSON(),
+                hasPremium: u1Premium || u2Premium
+            };
+        });
+
+        res.json({ pairs: pairsWithStatus });
+    } catch (error) {
+        console.error('Admin pairs error:', error);
+        res.status(500).json({ error: 'Failed to get pairs' });
+    }
+});
+
+/**
+ * GET /api/admin/payments
+ * Get recent payments
+ */
+router.get('/payments', adminAuth, async (req, res) => {
+    try {
+        const payments = await Payment.findAll({
+            limit: 50,
+            order: [['createdAt', 'DESC']],
+            include: [{ model: User, attributes: ['id', 'firstName', 'lastName', 'username'] }]
+        });
+        res.json({ payments });
+    } catch (error) {
+        console.error('Admin payments error:', error);
+        res.status(500).json({ error: 'Failed to get payments' });
+    }
+});
+
+/**
+ * DELETE /api/admin/payments/:id
+ * Delete a payment (e.g. pending)
+ */
+router.delete('/payments/:id', adminAuth, async (req, res) => {
+    try {
+        const result = await Payment.destroy({ where: { id: req.params.id } });
+        if (result) {
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: 'Payment not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete payment' });
     }
 });
 
@@ -207,7 +276,7 @@ router.get('/chart/activity', adminAuth, async (req, res) => {
  */
 router.post('/broadcast', adminAuth, async (req, res) => {
     try {
-        const { message, targetGroup, imageUrl } = req.body;
+        const { message, targetGroup, imageUrl, testUserId, linkData } = req.body;
 
         if (!message) {
             return res.status(400).json({ error: 'Message is required' });
@@ -215,66 +284,68 @@ router.post('/broadcast', adminAuth, async (req, res) => {
 
         let users;
 
-        // Target group filter
-        switch (targetGroup) {
-            case 'paired':
-                // Users who are in completed pairs
-                const pairedUserIds = await Pair.findAll({
-                    where: { user2Id: { [Op.not]: null }, isActive: true },
-                    attributes: ['user1Id', 'user2Id'],
-                });
-                const ids = pairedUserIds.flatMap(p => [p.user1Id, p.user2Id]);
-                users = await User.findAll({ where: { id: { [Op.in]: ids } } });
-                break;
-            case 'unpaired':
-                // Users not in any completed pair
-                const allPairedIds = await Pair.findAll({
-                    where: { user2Id: { [Op.not]: null }, isActive: true },
-                    attributes: ['user1Id', 'user2Id'],
-                });
-                const excludeIds = allPairedIds.flatMap(p => [p.user1Id, p.user2Id]);
-                users = await User.findAll({ where: { id: { [Op.notIn]: excludeIds } } });
-                break;
-            case 'active':
-                // Users active in last 7 days
-                const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-                const activeUserIds = await LoveClick.findAll({
-                    where: { createdAt: { [Op.gte]: weekAgo } },
-                    attributes: [[sequelize.fn('DISTINCT', sequelize.col('sender_id')), 'senderId']],
-                    raw: true,
-                });
-                users = await User.findAll({
-                    where: { id: { [Op.in]: activeUserIds.map(u => u.senderId) } }
-                });
-                break;
-            default:
-                users = await User.findAll();
+        if (targetGroup === 'test' && testUserId) {
+            users = await User.findAll({ where: { id: testUserId } });
+        } else {
+            // Target group filter
+            switch (targetGroup) {
+                case 'paired':
+                    // Users who are in completed pairs
+                    const pairedUserIds = await Pair.findAll({
+                        where: { user2Id: { [Op.not]: null }, isActive: true },
+                        attributes: ['user1Id', 'user2Id'],
+                    });
+                    const ids = pairedUserIds.flatMap(p => [p.user1Id, p.user2Id]);
+                    users = await User.findAll({ where: { id: { [Op.in]: ids } } });
+                    break;
+                case 'unpaired':
+                    // Users not in any completed pair
+                    const allPairedIds = await Pair.findAll({
+                        where: { user2Id: { [Op.not]: null }, isActive: true },
+                        attributes: ['user1Id', 'user2Id'],
+                    });
+                    const excludeIds = allPairedIds.flatMap(p => [p.user1Id, p.user2Id]);
+                    users = await User.findAll({ where: { id: { [Op.notIn]: excludeIds } } });
+                    break;
+                case 'active':
+                    // Users active in last 7 days
+                    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                    const activeUserIds = await LoveClick.findAll({
+                        where: { createdAt: { [Op.gte]: weekAgo } },
+                        attributes: [[sequelize.fn('DISTINCT', sequelize.col('sender_id')), 'senderId']],
+                        raw: true,
+                    });
+                    users = await User.findAll({
+                        where: { id: { [Op.in]: activeUserIds.map(u => u.senderId) } }
+                    });
+                    break;
+                default:
+                    users = await User.findAll();
+            }
         }
 
         let sent = 0;
         let failed = 0;
 
+        // Prepare extra options (e.g. keyboard)
+        const extra = { parse_mode: 'Markdown' };
+        if (linkData && linkData.text && linkData.url) {
+            extra.reply_markup = {
+                inline_keyboard: [[{ text: linkData.text, url: linkData.url }]]
+            };
+        }
+
         for (const user of users) {
             try {
-                // Use chatId if available, fallback to user.id
                 const targetChatId = user.chatId || user.id;
-                if (!targetChatId) {
-                    failed++;
-                    continue;
-                }
+                if (!targetChatId) { failed++; continue; }
 
                 if (imageUrl) {
-                    await bot.telegram.sendPhoto(targetChatId, imageUrl, {
-                        caption: message,
-                        parse_mode: 'Markdown',
-                    });
+                    await bot.telegram.sendPhoto(targetChatId, imageUrl, { caption: message, ...extra });
                 } else {
-                    await bot.telegram.sendMessage(targetChatId, message, {
-                        parse_mode: 'Markdown',
-                    });
+                    await bot.telegram.sendMessage(targetChatId, message, extra);
                 }
                 sent++;
-                // Rate limiting
                 await new Promise(r => setTimeout(r, 50));
             } catch (err) {
                 failed++;

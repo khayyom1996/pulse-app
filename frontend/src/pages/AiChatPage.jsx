@@ -151,6 +151,21 @@ const AiChatPage = () => {
                         <div ref={messagesEndRef} />
                     </div>
 
+                    {remaining === 0 && !isPremium && (
+                        <div className="limit-reached-overlay">
+                            <div className="limit-content">
+                                <span className="limit-icon">🔒</span>
+                                <div className="limit-text">
+                                    <strong>Лимит исчерпан</strong>
+                                    <p>Оформите Pulse Plus для безлимитного общения</p>
+                                </div>
+                            </div>
+                            <Link to="/premium" className="limit-btn">
+                                Upgrade
+                            </Link>
+                        </div>
+                    )}
+
                     <form className="chat-input-area" onSubmit={sendMessage}>
                         <input
                             type="text"
