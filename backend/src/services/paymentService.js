@@ -116,81 +116,71 @@ class PaymentService {
                 appliedPromoCode: null
             });
 
-            // Notify user via bot with features info and open button
+            // 1. Prepare shared message for the couple
+            const config = require('../config');
+            const formattedDate = newExpire.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            const sharedMessage = `🎉 *Pulse Plus активирован для вашей пары\\!*\n\nПодписка активна до: *${formattedDate.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&')}*\n\nВам обоим доступно:\n🧠 *ИИ Психолог*\n🌳 *Эксклюзивные деревья*\n✨ *Тайные желания*\n❤️ *Безлимитная любовь*\n📅 *Продвинутые даты*\n🔔 *Приоритетные уведомления*\n\nНаслаждайтесь Pulse Plus\\! 💎`;
+
+            const keyboard = {
+                parse_mode: 'MarkdownV2',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: '💕 Открыть Pulse', web_app: { url: config.webappUrl } }],
+                    ],
+                },
+            };
+
+            // 2. Notify the buyer (User)
             try {
-                const config = require('../config');
-                const formattedDate = newExpire.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-                const message = `🎉 *Поздравляем\\! Подписка Pulse Plus активирована\\!*
-
-📅 Активна до: *${formattedDate.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&')}*
-
-Теперь вам доступно:
-🧠 *ИИ Психолог* — безлимитное общение и советы
-🌳 *Эксклюзивные деревья* — новые уровни и формы
-✨ *Тайные желания* — безлимитные совпадения
-❤️ *Безлимитная любовь* — без ограничений
-📅 *Продвинутые даты* — расширенные напоминания
-🔔 *Приоритетные уведомления* — никогда не пропустите
-
-Наслаждайтесь Pulse Plus\\! 💎`;
-
-                await bot.telegram.sendMessage(user.chatId || user.id, message, {
-                    parse_mode: 'MarkdownV2',
-                    reply_markup: {
-                        inline_keyboard: [
-                            [{ text: '💕 Открыть Pulse', web_app: { url: config.webappUrl } }],
-                        ],
-                    },
-                });
+                await bot.telegram.sendMessage(user.chatId || user.id, sharedMessage, keyboard);
+                console.log(`Notification sent to buyer ${user.id}`);
             } catch (e) {
-                console.error('Failed to send payment notification:', e);
+                console.error(`Failed to send payment notification to buyer ${user.id}:`, e);
             }
         }
 
-        // Share premium with partner
+        // 3. Share premium with partner and notify them
         try {
-            // Require inside method to assume initialized
             const authService = require('./authService');
+            // Force fetch pair again to be sure
             const pair = await authService.getUserPair(user.id);
 
             if (pair) {
                 const partner = authService.getPartner(pair, user.id);
+
                 if (partner) {
+                    console.log(`Found partner ${partner.id} for user ${user.id}. Syncing premium...`);
+
+                    // Update partner premium
                     await partner.update({
                         isPremium: true,
                         premiumUntil: newExpire,
                         discount: 0
                     });
 
-                    console.log(`Synced premium for partner ${partner.id} of user ${user.id}`);
-
-                    // Notify partner
+                    // Notify partner with the SAME message
                     try {
-                        const formattedDate = newExpire.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-                        const partnerMsg = `🎉 *Pulse Plus активирован для вашей пары\\!*\n\nВаш партнёр оформил подписку, и теперь она доступна вам обоим до *${formattedDate.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&')}*\\! 💎`;
+                        const config = require('../config'); // ensure config is available
+                        const partnerChatId = partner.chatId || partner.id;
 
-                        const config = require('../config');
-                        if (partner.chatId) {
-                            await bot.telegram.sendMessage(partner.chatId, partnerMsg, {
-                                parse_mode: 'MarkdownV2',
-                                reply_markup: {
-                                    inline_keyboard: [
-                                        [{ text: '💕 Открыть Pulse', web_app: { url: config.webappUrl } }],
-                                    ],
-                                },
-                            });
+                        if (partnerChatId) {
+                            await bot.telegram.sendMessage(partnerChatId, sharedMessage, keyboard);
+                            console.log(`Notification sent to partner ${partner.id}`);
+                        } else {
+                            console.error(`Partner ${partner.id} has no chatId`);
                         }
                     } catch (e) {
-                        console.error('Failed to notify partner about premium:', e);
+                        console.error(`Failed to notify partner ${partner.id} about premium:`, e);
                     }
                 } else {
-                    console.log(`No partner found for user ${user.id} to sync premium`);
+                    console.log(`User ${user.id} has a pair but no partner (pending invite?)`);
                 }
             } else {
-                console.log(`No pair found for user ${user.id} to sync premium`);
+                console.log(`User ${user.id} has no pair, skipping partner sync`);
             }
         } catch (error) {
-            console.error('Failed to share premium with partner:', error);
+            console.error('Critical error in partner sync:', error);
         }
     }
 }
