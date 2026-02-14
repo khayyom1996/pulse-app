@@ -44,19 +44,57 @@ const AiChatPage = () => {
     }, [messages]);
 
     const loadHistory = async () => {
+        // Safety timeout to ensure loading state doesn't stick
+        const safetyTimer = setTimeout(() => {
+            if (fetchingHistory) {
+                console.warn('Force stopping loading due to timeout');
+                setFetchingHistory(false);
+            }
+        }, 12000);
+
         try {
-            const [historyData, userData] = await Promise.all([
-                apiClient.getAiHistory(),
-                apiClient.getPremiumStatus()
+            // Helper to wrap promise with timeout
+            const withTimeout = (promise, ms = 10000) => {
+                return Promise.race([
+                    promise,
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
+                ]);
+            };
+
+            // Load data in parallel but handle errors individually so one failure doesn't block the other
+            const [historyResult, userResult] = await Promise.allSettled([
+                withTimeout(apiClient.getAiHistory()),
+                withTimeout(apiClient.getPremiumStatus())
             ]);
-            setMessages(historyData.history || []);
-            setRemaining(historyData.remaining);
-            setDailyLimit(historyData.dailyLimit || 3);
-            setUser(userData);
+
+            // Handle History (AI Chat)
+            if (historyResult.status === 'fulfilled') {
+                const data = historyResult.value;
+                setMessages(data.history || []);
+                setRemaining(data.remaining !== undefined ? data.remaining : 3);
+                setDailyLimit(data.dailyLimit || 3);
+            } else {
+                console.error('Failed to load AI history:', historyResult.reason);
+                // Fallback to empty
+                setMessages([]);
+            }
+
+            // Handle User Status (Premium/Pricing)
+            if (userResult.status === 'fulfilled') {
+                setUser(userResult.value);
+            } else {
+                console.error('Failed to load user status:', userResult.reason);
+                // Maintain current user state or set defaults if null
+                if (!user) {
+                    setUser({ isPremium: false, pricing: null });
+                }
+            }
         } catch (error) {
-            console.error('Failed to load data:', error);
+            console.error('Critical error in loadHistory:', error);
         } finally {
+            clearTimeout(safetyTimer);
             setFetchingHistory(false);
+            setTimeout(scrollToBottom, 100);
         }
     };
 
