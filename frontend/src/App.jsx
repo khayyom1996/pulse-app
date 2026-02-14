@@ -27,8 +27,8 @@ export default function App() {
         expand();
 
         // Check if onboarding was completed
-        // const onboardingDone = localStorage.getItem('pulse_onboarding_done');
-        const onboardingDone = false;
+        const onboardingDone = localStorage.getItem('pulse_onboarding_done');
+        // const onboardingDone = false;
         if (!onboardingDone) {
             setShowOnboarding(true);
         }
