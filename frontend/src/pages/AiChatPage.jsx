@@ -43,6 +43,11 @@ const AiChatPage = () => {
         }
     }, [messages]);
 
+    // Load history on mount
+    useEffect(() => {
+        loadHistory();
+    }, []);
+
     const loadHistory = async () => {
         // Safety timeout to ensure loading state doesn't stick
         const safetyTimer = setTimeout(() => {
