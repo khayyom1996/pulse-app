@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import LoveButton from '../components/LoveButton';
 import TreeStreak from '../components/TreeStreak';
+import UpsellModal from '../components/UpsellModal';
 import { useTelegram } from '../hooks/useTelegram';
 import api from '../api/client';
 import './HomePage.css';
@@ -28,6 +29,7 @@ export default function HomePage() {
     const [loading, setLoading] = useState(true);
     const [inviteCode, setInviteCode] = useState('');
     const [showJoin, setShowJoin] = useState(false);
+    const [showLimitModal, setShowLimitModal] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -183,13 +185,23 @@ export default function HomePage() {
                 </div>
 
                 {/* Love Button */}
-                <LoveButton onLoveSent={handleLoveSent} disabled={!pair.isComplete} />
+                <LoveButton
+                    onLoveSent={handleLoveSent}
+                    disabled={!pair.isComplete}
+                    onLimitReached={() => setShowLimitModal(true)}
+                />
 
                 {/* Tree Streak */}
                 <TreeStreak
                     level={streak.level}
                     currentStreak={streak.current}
                     maxStreak={streak.max}
+                />
+
+                <UpsellModal
+                    isOpen={showLimitModal}
+                    onClose={() => setShowLimitModal(false)}
+                    type="love"
                 />
             </motion.div>
         </div>

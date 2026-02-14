@@ -15,18 +15,30 @@ const AiChatPage = () => {
     const [user, setUser] = useState(null);
     const [remaining, setRemaining] = useState(null);
     const [dailyLimit, setDailyLimit] = useState(3);
-    const messagesEndRef = useRef(null);
+    const containerRef = useRef(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
     useEffect(() => {
-        loadHistory();
-    }, []);
+        if (messages.length === 0) return;
 
-    useEffect(() => {
-        scrollToBottom();
+        const lastMsg = messages[messages.length - 1];
+
+        // If last message is from model, scroll to its start
+        if (lastMsg.role === 'model') {
+            setTimeout(() => {
+                const nodes = containerRef.current?.querySelectorAll('.message-wrapper');
+                const lastNode = nodes?.[nodes.length - 1];
+                if (lastNode) {
+                    lastNode.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 100);
+        } else {
+            // User message or others, scroll to bottom
+            setTimeout(scrollToBottom, 100);
+        }
     }, [messages]);
 
     const loadHistory = async () => {
@@ -115,7 +127,7 @@ const AiChatPage = () => {
                 </div>
             ) : (
                 <>
-                    <div className="messages-container">
+                    <div className="messages-container" ref={containerRef}>
                         {messages.length === 0 && (
                             <div className="empty-chat">
                                 <div className="ai-welcome-icon">💬</div>
@@ -156,8 +168,8 @@ const AiChatPage = () => {
                             <div className="limit-content">
                                 <span className="limit-icon">🔒</span>
                                 <div className="limit-text">
-                                    <strong>Лимит исчерпан</strong>
-                                    <p>Оформите Pulse Plus для безлимитного общения</p>
+                                    <strong>{t('ai.limit_reached', 'На сегодня лимит исчерпан')}</strong>
+                                    <p>{t('premium.subtitle', 'Оформите Pulse Plus для безлимитного общения')}</p>
                                 </div>
                             </div>
                             <Link to="/premium" className="limit-btn">
