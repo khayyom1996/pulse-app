@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background: var(--bg-color);
+    background: var(--bg-secondary);
 }
 
 .ai-chat-header {
@@ -10,7 +10,9 @@
     align-items: center;
     padding: 16px;
     background: var(--card-bg);
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    z-index: 10;
 }
 
 .ai-avatar {
@@ -62,8 +64,8 @@
 }
 
 .message-bubble {
-    padding: 12px 16px;
-    border-radius: 18px;
+    padding: 12px 18px;
+    border-radius: 20px;
     max-width: 80%;
     font-size: 15px;
     line-height: 1.4;
@@ -75,13 +77,15 @@
     background: var(--primary-color);
     color: white;
     border-bottom-right-radius: 4px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #ff7676 100%);
+    box-shadow: 0 2px 8px rgba(255, 87, 87, 0.25);
 }
 
 .message-wrapper.model .message-bubble {
-    background: var(--card-bg);
+    background: white;
     color: var(--text-color);
     border-bottom-left-radius: 4px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .message-time {
@@ -137,17 +141,18 @@
     flex: 1;
     padding: 12px;
     border-radius: 20px;
-    border: 1px solid var(--border-color);
-    background: var(--bg-color);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    background: white;
     color: var(--text-color);
-    font-size: 15px;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .chat-input-area button {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #ff7676 100%);
     color: white;
     border: none;
     font-size: 20px;
